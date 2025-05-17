@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 35 80% 97%;
+    --foreground: 35 10% 15%;
+    
+    --primary: 35 100% 50%;
+    --primary-foreground: 35 10% 15%;
+    
+    --secondary: 35 30% 96%;
+    --secondary-foreground: 35 10% 15%;
+    
+    --accent: 20 100% 60%;
+    --accent-foreground: 20 10% 98%;
+    
+    --card: 35 80% 98%;
+    --card-foreground: 35 10% 15%;
+
+    --border: 35 30% 85%;
+    --input: 35 30% 90%;
+    
+    --ring: 35 100% 50%;
+    
+    --radius: 1rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    @apply font-bold;
+  }
+  
+  p, span, a, button, input, textarea, select {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .bento-grid-span-2 {
+    grid-column: span 2;
+  }
+  
+  .bento-grid-span-3 {
+    grid-column: span 3;
+  }
+}
