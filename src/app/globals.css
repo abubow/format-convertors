@@ -4,27 +4,36 @@
 
 @layer base {
   :root {
-    --background: 35 80% 97%;
-    --foreground: 35 10% 15%;
+    /* Refined color palette for Neumorphism */
+    --background: 220 20% 97%;
+    --foreground: 220 50% 20%;
     
-    --primary: 35 100% 50%;
-    --primary-foreground: 35 10% 15%;
+    --primary: 250 100% 65%;
+    --primary-foreground: 0 0% 100%;
     
-    --secondary: 35 30% 96%;
-    --secondary-foreground: 35 10% 15%;
+    --secondary: 220 15% 94%;
+    --secondary-foreground: 220 50% 20%;
     
-    --accent: 20 100% 60%;
-    --accent-foreground: 20 10% 98%;
+    --accent: 190 90% 50%;
+    --accent-foreground: 190 100% 10%;
     
-    --card: 35 80% 98%;
-    --card-foreground: 35 10% 15%;
+    --card: 220 20% 97%;
+    --card-foreground: 220 50% 20%;
 
-    --border: 35 30% 85%;
-    --input: 35 30% 90%;
+    --border: 220 20% 92%;
+    --input: 220 20% 94%;
     
-    --ring: 35 100% 50%;
+    --ring: 250 100% 65%;
     
-    --radius: 1rem;
+    --radius: 1.5rem;
+    
+    /* Neumorphic shadow variables */
+    --shadow-color: 220 20% 85%;
+    --shadow-light: 0 0% 100%;
+    --shadow-distance: 12px;
+    --shadow-blur: 24px;
+    --shadow-intensity: 0.12;
+    --shadow-inner-intensity: 0.06;
   }
 }
 
@@ -34,41 +43,105 @@
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-hidden h-screen;
+    font-feature-settings: "ss01", "ss03", "cv01", "cv03";
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', sans-serif;
-    @apply font-bold;
+    font-family: var(--font-clash), sans-serif;
+    @apply font-bold tracking-tight;
   }
   
   p, span, a, button, input, textarea, select {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-cabinet), sans-serif;
   }
 }
 
-.bento-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-@media (min-width: 768px) {
+@layer utilities {
   .bento-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .bento-grid {
-    grid-template-columns: repeat(3, 1fr);
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: minmax(120px, auto);
+    gap: 1.5rem;
+    height: calc(100vh - 2rem);
+    padding: 1rem;
+    overflow: hidden;
   }
   
-  .bento-grid-span-2 {
-    grid-column: span 2;
+  .bento-card {
+    @apply rounded-[var(--radius)] p-6 relative backdrop-blur-sm transition-all duration-300;
+    background: linear-gradient(145deg, hsl(var(--card) / 0.8), hsl(var(--card) / 0.4));
+    box-shadow: 
+      var(--shadow-distance) var(--shadow-distance) var(--shadow-blur) hsla(var(--shadow-color) / var(--shadow-intensity)),
+      calc(var(--shadow-distance) * -1) calc(var(--shadow-distance) * -1) var(--shadow-blur) hsla(var(--shadow-light) / var(--shadow-intensity));
   }
   
-  .bento-grid-span-3 {
-    grid-column: span 3;
+  .bento-card:hover {
+    background: linear-gradient(145deg, hsl(var(--card) / 0.9), hsl(var(--card) / 0.5));
+    box-shadow: 
+      calc(var(--shadow-distance) * 1.2) calc(var(--shadow-distance) * 1.2) calc(var(--shadow-blur) * 1.2) hsla(var(--shadow-color) / var(--shadow-intensity)),
+      calc(var(--shadow-distance) * -1.2) calc(var(--shadow-distance) * -1.2) calc(var(--shadow-blur) * 1.2) hsla(var(--shadow-light) / var(--shadow-intensity));
+    transform: translateY(-2px);
   }
+  
+  .neomorphic-icon {
+    @apply rounded-full p-3 inline-flex items-center justify-center;
+    background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--card) / 0.7));
+    box-shadow: 
+      4px 4px 8px hsla(var(--shadow-color) / var(--shadow-intensity)),
+      -4px -4px 8px hsla(var(--shadow-light) / var(--shadow-intensity));
+  }
+  
+  .neomorphic-inset {
+    @apply rounded-full p-3 inline-flex items-center justify-center;
+    background: linear-gradient(145deg, hsl(var(--card) / 0.7), hsl(var(--card)));
+    box-shadow: 
+      inset 4px 4px 8px hsla(var(--shadow-color) / var(--shadow-inner-intensity)),
+      inset -4px -4px 8px hsla(var(--shadow-light) / var(--shadow-inner-intensity));
+  }
+  
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/10 border border-white/20;
+  }
+  
+  /* Bento grid span utilities */
+  .col-span-1 { grid-column: span 1; }
+  .col-span-2 { grid-column: span 2; }
+  .col-span-3 { grid-column: span 3; }
+  .col-span-4 { grid-column: span 4; }
+  .col-span-5 { grid-column: span 5; }
+  .col-span-6 { grid-column: span 6; }
+  .col-span-7 { grid-column: span 7; }
+  .col-span-8 { grid-column: span 8; }
+  .col-span-9 { grid-column: span 9; }
+  .col-span-10 { grid-column: span 10; }
+  .col-span-11 { grid-column: span 11; }
+  .col-span-12 { grid-column: span 12; }
+  
+  .row-span-1 { grid-row: span 1; }
+  .row-span-2 { grid-row: span 2; }
+  .row-span-3 { grid-row: span 3; }
+  .row-span-4 { grid-row: span 4; }
+  .row-span-5 { grid-row: span 5; }
+  .row-span-6 { grid-row: span 6; }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--card));
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.5);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.7);
 }

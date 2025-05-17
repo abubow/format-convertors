@@ -1,150 +1,187 @@
+"use client";
 import { ImageConverter } from '@/components/converters/image-converter';
 import { VideoConverter } from '@/components/converters/video-converter';
 import { AudioConverter } from '@/components/converters/audio-converter';
 import { DocumentConverter } from '@/components/converters/document-converter';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
-import { FileImage, FileVideo, FileAudio, FileText, Bolt, Workflow, Sparkles } from 'lucide-react';
+import { FileImage, FileVideo, FileAudio, FileText, Zap, Sparkles, Settings, ChevronRight, ArrowRight, Workflow } from 'lucide-react';
+import { useState } from 'react';
+
+// Base component for all bento cards
+function BentoCard({ 
+  className, 
+  children, 
+  colSpan = 3, 
+  rowSpan = 1,
+  hoverEffect = true
+}: { 
+  className?: string; 
+  children: React.ReactNode; 
+  colSpan?: number; 
+  rowSpan?: number;
+  hoverEffect?: boolean;
+}) {
+  return (
+    <div 
+      className={`
+        bento-card 
+        ${hoverEffect ? 'hover:translate-y-[-3px] hover:shadow-xl' : ''}
+        col-span-${colSpan} 
+        row-span-${rowSpan}
+        ${className || ''}
+      `}
+    >
+      {children}
+    </div>
+  );
+}
 
 export default function Home() {
-  return (
-    <div className="space-y-12">
-      <header className="text-center space-y-4">
-        <div className="inline-block p-3 rounded-xl bg-amber-100 shadow-[4px_4px_8px_rgba(0,0,0,0.05),-4px_-4px_8px_rgba(255,255,255,0.9)]">
-          <Bolt className="h-10 w-10 text-amber-600" />
-        </div>
-        <h1 className="text-5xl font-extrabold text-amber-900 tracking-tight">ConvertMaster</h1>
-        <p className="text-xl text-amber-700 max-w-2xl mx-auto">
-          The modern way to convert your files with a beautiful, intuitive interface.
-        </p>
-      </header>
+  // Active converter state
+  const [activeConverter, setActiveConverter] = useState<string>('image');
+  
+  // Function to show appropriate converter based on active state
+  const renderConverter = () => {
+    switch (activeConverter) {
+      case 'image':
+        return <ImageConverter />;
+      case 'video':
+        return <VideoConverter />;
+      case 'audio':
+        return <AudioConverter />;
+      case 'document':
+        return <DocumentConverter />;
+      default:
+        return <ImageConverter />;
+    }
+  };
 
-      <div className="bento-grid space-y-0">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="p-6 flex flex-col items-center text-center hover:shadow-[8px_8px_16px_rgba(0,0,0,0.07),-8px_-8px_16px_rgba(255,255,255,0.8)] transition-all duration-300">
-            <div className="p-4 rounded-full bg-amber-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] mb-4">
-              <FileImage className="h-6 w-6 text-amber-600" />
-            </div>
-            <h3 className="text-lg font-bold text-amber-900">Image Conversion</h3>
-            <p className="text-amber-700 text-sm mt-2">
-              Convert between JPG, PNG, WebP, and more formats.
-            </p>
-          </Card>
-          
-          <Card className="p-6 flex flex-col items-center text-center hover:shadow-[8px_8px_16px_rgba(0,0,0,0.07),-8px_-8px_16px_rgba(255,255,255,0.8)] transition-all duration-300">
-            <div className="p-4 rounded-full bg-amber-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] mb-4">
-              <FileVideo className="h-6 w-6 text-amber-600" />
-            </div>
-            <h3 className="text-lg font-bold text-amber-900">Video Conversion</h3>
-            <p className="text-amber-700 text-sm mt-2">
-              Convert between MP4, WebM, AVI, and more formats.
-            </p>
-          </Card>
-          
-          <Card className="p-6 flex flex-col items-center text-center hover:shadow-[8px_8px_16px_rgba(0,0,0,0.07),-8px_-8px_16px_rgba(255,255,255,0.8)] transition-all duration-300">
-            <div className="p-4 rounded-full bg-amber-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] mb-4">
-              <FileAudio className="h-6 w-6 text-amber-600" />
-            </div>
-            <h3 className="text-lg font-bold text-amber-900">Audio Conversion</h3>
-            <p className="text-amber-700 text-sm mt-2">
-              Convert between MP3, WAV, FLAC, and more formats.
-            </p>
-          </Card>
-          
-          <Card className="p-6 flex flex-col items-center text-center hover:shadow-[8px_8px_16px_rgba(0,0,0,0.07),-8px_-8px_16px_rgba(255,255,255,0.8)] transition-all duration-300">
-            <div className="p-4 rounded-full bg-amber-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] mb-4">
-              <FileText className="h-6 w-6 text-amber-600" />
-            </div>
-            <h3 className="text-lg font-bold text-amber-900">Document Conversion</h3>
-            <p className="text-amber-700 text-sm mt-2">
-              Convert between PDF, DOCX, TXT, and more formats.
-            </p>
-          </Card>
-        </div>
+  // Function for converter type selection
+  const ConverterTypeButton = ({ 
+    type, 
+    icon: Icon, 
+    label 
+  }: { 
+    type: string; 
+    icon: React.ElementType; 
+    label: string 
+  }) => (
+    <button
+      onClick={() => setActiveConverter(type)}
+      className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+        activeConverter === type
+          ? 'bg-primary/10 text-primary'
+          : 'hover:bg-card/80 text-foreground/70'
+      }`}
+    >
+      <div className={`neomorphic-${activeConverter === type ? 'icon' : 'inset'}`}>
+        <Icon className="h-5 w-5" />
       </div>
-      
-      <div className="rounded-2xl bg-gradient-to-br from-amber-100/50 to-amber-50/50 p-6 shadow-[8px_8px_16px_rgba(0,0,0,0.05),-8px_-8px_16px_rgba(255,255,255,0.8)]">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 rounded-full bg-amber-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]">
-            <Workflow className="h-6 w-6 text-amber-600" />
+      <span className="font-medium">{label}</span>
+      {activeConverter === type && (
+        <ChevronRight className="h-4 w-4 ml-auto text-primary" />
+      )}
+    </button>
+  );
+
+  return (
+    <div className="bento-grid w-full">
+      {/* Logo & App Title */}
+      <BentoCard colSpan={3} rowSpan={1} className="flex items-center gap-4">
+        <div className="neomorphic-icon bg-gradient-to-br from-primary/30 to-primary">
+          <Zap className="h-6 w-6 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">ConvertMaster</h1>
+          <p className="text-foreground/70 text-sm">Ultra-modern file conversion</p>
+        </div>
+      </BentoCard>
+
+      {/* Features Highlight */}
+      <BentoCard colSpan={9} rowSpan={1} className="flex gap-6 items-center justify-between overflow-hidden group">
+        <div className="flex items-center gap-6">
+          <div className="neomorphic-icon">
+            <Sparkles className="h-5 w-5 text-primary" />
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-amber-900">Start Converting</h2>
-            <p className="text-amber-700">Choose a converter and transform your files instantly</p>
-          </div>
+          <h2 className="text-lg font-medium">Modern, beautiful file conversion with a single-viewport experience</h2>
+        </div>
+        <div className="flex -space-x-2">
+          <div className="h-12 w-12 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 border-2 border-white"></div>
+          <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 border-2 border-white"></div>
+          <div className="h-12 w-12 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 border-2 border-white"></div>
+          <div className="h-12 w-12 rounded-full flex items-center justify-center bg-primary border-2 border-white text-white text-xs font-bold">+5</div>
+        </div>
+      </BentoCard>
+
+      {/* Converter Selection Sidebar */}
+      <BentoCard colSpan={3} rowSpan={4} className="flex flex-col">
+        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <Settings className="h-4 w-4" />
+          Choose Converter
+        </h3>
+        
+        <div className="space-y-2">
+          <ConverterTypeButton 
+            type="image" 
+            icon={FileImage} 
+            label="Image Converter" 
+          />
+          <ConverterTypeButton 
+            type="video" 
+            icon={FileVideo} 
+            label="Video Converter" 
+          />
+          <ConverterTypeButton 
+            type="audio" 
+            icon={FileAudio} 
+            label="Audio Converter" 
+          />
+          <ConverterTypeButton 
+            type="document" 
+            icon={FileText} 
+            label="Document Converter" 
+          />
         </div>
         
-        <Tabs defaultValue="image">
-          <TabsList className="w-full justify-start mb-6 overflow-x-auto flex-nowrap">
-            <TabsTrigger value="image" className="flex gap-2 items-center">
-              <FileImage className="h-4 w-4" />
-              <span>Images</span>
-            </TabsTrigger>
-            <TabsTrigger value="video" className="flex gap-2 items-center">
-              <FileVideo className="h-4 w-4" />
-              <span>Videos</span>
-            </TabsTrigger>
-            <TabsTrigger value="audio" className="flex gap-2 items-center">
-              <FileAudio className="h-4 w-4" />
-              <span>Audio</span>
-            </TabsTrigger>
-            <TabsTrigger value="document" className="flex gap-2 items-center">
-              <FileText className="h-4 w-4" />
-              <span>Documents</span>
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="image">
-            <ImageConverter />
-          </TabsContent>
-          
-          <TabsContent value="video">
-            <VideoConverter />
-          </TabsContent>
-          
-          <TabsContent value="audio">
-            <AudioConverter />
-          </TabsContent>
-          
-          <TabsContent value="document">
-            <DocumentConverter />
-          </TabsContent>
-        </Tabs>
-      </div>
-      
-      <div className="bento-grid space-y-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="p-6 hover:shadow-[8px_8px_16px_rgba(0,0,0,0.07),-8px_-8px_16px_rgba(255,255,255,0.8)] transition-all duration-300">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 rounded-full bg-amber-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]">
-                <Bolt className="h-5 w-5 text-amber-600" />
+        <div className="mt-auto pt-6 relative">
+          <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--card))] via-transparent to-transparent" />
+          <div className="relative">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/10">
+              <div className="neomorphic-icon bg-primary/10 mb-3">
+                <Workflow className="h-5 w-5 text-primary" />
               </div>
-              <h3 className="text-xl font-bold text-amber-900">Lightning Fast</h3>
+              <h4 className="font-medium mb-1">Batch Processing</h4>
+              <p className="text-sm text-foreground/70 mb-3">Convert multiple files at once with our premium plan</p>
+              <button className="text-sm font-medium text-primary flex items-center gap-1 group">
+                Learn more
+                <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+              </button>
             </div>
-            <p className="text-amber-700">
-              Our optimized conversion engine processes your files with incredible speed, 
-              so you don't have to wait. Get your converted files in seconds, not minutes.
-            </p>
-          </Card>
-          
-          <Card className="p-6 hover:shadow-[8px_8px_16px_rgba(0,0,0,0.07),-8px_-8px_16px_rgba(255,255,255,0.8)] transition-all duration-300">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 rounded-full bg-amber-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]">
-                <Sparkles className="h-5 w-5 text-amber-600" />
-              </div>
-              <h3 className="text-xl font-bold text-amber-900">High Quality</h3>
-            </div>
-            <p className="text-amber-700">
-              We maintain the highest quality during conversion. Your images stay sharp, 
-              your videos remain clear, and your documents preserve their formatting.
-            </p>
-          </Card>
+          </div>
         </div>
-      </div>
-      
-      <footer className="text-center text-amber-700 pt-10 border-t border-amber-200/50">
-        <p>© {new Date().getFullYear()} ConvertMaster. Beautiful file conversion for everyone.</p>
-      </footer>
+      </BentoCard>
+
+      {/* Main Converter Area */}
+      <BentoCard colSpan={9} rowSpan={4} className="overflow-hidden p-0 flex flex-col">
+        <div className="p-6 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xl font-bold">
+              {activeConverter.charAt(0).toUpperCase() + activeConverter.slice(1)} Converter
+            </h2>
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
+              <span className="text-sm text-foreground/70">Ready to convert</span>
+            </div>
+          </div>
+          <p className="text-foreground/70">
+            Drop your files or select input and output formats to begin
+          </p>
+        </div>
+        
+        <div className="flex-1 bg-card/30 p-6 rounded-b-[var(--radius)]">
+          {renderConverter()}
+        </div>
+      </BentoCard>
     </div>
   );
 }

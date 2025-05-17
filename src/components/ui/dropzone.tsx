@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
-import { Upload, FileIcon } from 'lucide-react';
+import { Upload, FileIcon, X } from 'lucide-react';
 
 interface DropzoneProps extends React.HTMLAttributes<HTMLDivElement> {
   onFileSelect: (files: File[]) => void;
@@ -27,6 +27,12 @@ export function Dropzone({
     [onFileSelect]
   );
 
+  const removeFile = (file: File, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const newFiles = acceptedFiles.filter(f => f !== file);
+    onFileSelect(newFiles);
+  };
+
   const { getRootProps, getInputProps, isDragActive, acceptedFiles } = useDropzone({
     onDrop,
     accept,
@@ -39,38 +45,61 @@ export function Dropzone({
     <div
       {...getRootProps()}
       className={cn(
-        'flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-xl transition-all',
+        'relative rounded-[var(--radius)] backdrop-blur-sm transition-all duration-300',
         isDragActive
-          ? 'bg-amber-50 border-amber-400 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.05),inset_-4px_-4px_8px_rgba(255,255,255,0.9)]'
-          : 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 shadow-[4px_4px_8px_rgba(0,0,0,0.05),-4px_-4px_8px_rgba(255,255,255,0.9)]',
+          ? 'bg-primary/5 ring-2 ring-primary/50'
+          : 'bento-card',
         disabled && 'opacity-50 cursor-not-allowed',
         className
       )}
       {...props}
     >
       <input {...getInputProps()} />
-      <div className="flex flex-col items-center justify-center space-y-4 text-center p-6">
-        <div className="p-4 rounded-full bg-amber-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]">
-          <Upload className="h-8 w-8 text-amber-600" />
-        </div>
-        <div className="space-y-1">
-          <p className="text-lg font-medium text-amber-900">
-            {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
-          </p>
-          <p className="text-sm text-amber-600">or click to browse</p>
-        </div>
-        {acceptedFiles.length > 0 && (
-          <div className="w-full max-w-xs mt-4">
-            <p className="text-sm font-medium text-amber-800 mb-2">{acceptedFiles.length} file(s) selected</p>
-            <div className="space-y-2 max-h-32 overflow-y-auto">
+      <div className="flex flex-col items-center justify-center p-8 h-full">
+        {acceptedFiles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center space-y-4 text-center py-10">
+            <div className="neomorphic-icon">
+              <Upload className="h-6 w-6 text-primary" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-lg font-medium">
+                {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
+              </p>
+              <p className="text-sm text-foreground/60">or click to browse</p>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-primary"></div>
+                <p className="font-medium">{acceptedFiles.length} file{acceptedFiles.length !== 1 ? 's' : ''} selected</p>
+              </div>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFileSelect([]);
+                }}
+                className="text-xs text-foreground/60 hover:text-foreground"
+              >
+                Clear all
+              </button>
+            </div>
+            <div className="space-y-2 max-h-[240px] overflow-y-auto pr-2">
               {acceptedFiles.map((file: File, index: number) => (
                 <div
                   key={index}
-                  className="flex items-center bg-white/50 p-2 rounded-lg text-xs text-amber-800 shadow-[2px_2px_4px_rgba(0,0,0,0.05),-2px_-2px_4px_rgba(255,255,255,0.9)]"
+                  className="flex items-center bg-card/80 p-3 rounded-xl text-sm"
                 >
-                  <FileIcon className="h-4 w-4 mr-2 text-amber-600" />
-                  <span className="truncate">{file.name}</span>
-                  <span className="ml-auto text-amber-500">{(file.size / 1024).toFixed(0)}KB</span>
+                  <FileIcon className="h-4 w-4 mr-3 text-primary/80" />
+                  <span className="truncate flex-1">{file.name}</span>
+                  <span className="mx-3 text-foreground/50 text-xs">{(file.size / 1024).toFixed(0)}KB</span>
+                  <button
+                    onClick={(e) => removeFile(file, e)}
+                    className="neomorphic-inset p-1.5 hover:bg-red-100 hover:text-red-500 transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
                 </div>
               ))}
             </div>

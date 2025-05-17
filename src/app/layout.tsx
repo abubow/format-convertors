@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
-import "@fontsource/space-grotesk/400.css";
-import "@fontsource/space-grotesk/500.css";
-import "@fontsource/space-grotesk/700.css";
-import "@fontsource/outfit/400.css";
-import "@fontsource/outfit/500.css";
-import "@fontsource/outfit/600.css";
+import { Space_Grotesk, Outfit } from "next/font/google";
 import "./globals.css";
 
+// Google font definitions
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-clash',
+  display: 'swap',
+});
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-cabinet',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: "ConvertMaster | Modern File Conversion",
-  description: "Convert images, videos, audio, and documents between formats with our modern, beautiful UI",
+  title: "ConvertMaster | Ultra-Modern File Conversion",
+  description: "Transform your files with our sleek, neumorphic UI. No scrolling, just pure efficiency.",
 };
 
 export default function RootLayout({
@@ -18,11 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 font-sans antialiased">
-        <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <html lang="en" className={`${spaceGrotesk.variable} ${outfit.variable}`}>
+      <body className="overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-100 via-background to-blue-100">
+        <div className="h-screen w-screen flex items-center justify-center p-2">
           {children}
-        </main>
+        </div>
       </body>
     </html>
   );

@@ -1,44 +1,82 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'raised' | 'inset' | 'flat';
-  size?: 'sm' | 'md' | 'lg';
-}
-
-const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant = 'raised', size = 'md', children, ...props }, ref) => {
-    const baseStyles = "rounded-2xl overflow-hidden transition-all duration-300";
-    
-    const variantStyles = {
-      raised: "bg-gradient-to-br from-amber-50 to-amber-100 shadow-[8px_8px_16px_rgba(0,0,0,0.1),-8px_-8px_16px_rgba(255,255,255,0.8)] hover:shadow-[10px_10px_20px_rgba(0,0,0,0.1),-10px_-10px_20px_rgba(255,255,255,0.8)]",
-      inset: "bg-gradient-to-tr from-amber-100 to-amber-50 shadow-[inset_8px_8px_16px_rgba(0,0,0,0.1),inset_-8px_-8px_16px_rgba(255,255,255,0.8)]",
-      flat: "bg-amber-50 border border-amber-200"
-    };
-    
-    const sizeStyles = {
-      sm: "p-3",
-      md: "p-5",
-      lg: "p-7"
-    };
-    
-    return (
-      <div
-        className={cn(
-          baseStyles,
-          variantStyles[variant],
-          sizeStyles[size],
-          className
-        )}
-        ref={ref}
-        {...props}
-      >
-        {children}
-      </div>
-    );
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    hoverable?: boolean;
+    inset?: boolean;
   }
-);
+>(({ className, hoverable = false, inset = false, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-[var(--radius)] p-6 backdrop-blur-sm transition-all duration-300",
+      inset 
+        ? "bg-gradient-to-br from-card/70 to-card/90 shadow-[inset_var(--shadow-distance)_var(--shadow-distance)_var(--shadow-blur)_hsla(var(--shadow-color)/var(--shadow-intensity)),inset_calc(var(--shadow-distance)*-1)_calc(var(--shadow-distance)*-1)_var(--shadow-blur)_hsla(var(--shadow-light)/var(--shadow-intensity))]"
+        : "bento-card",
+      hoverable && !inset && "hover:translate-y-[-3px] hover:shadow-xl",
+      className
+    )}
+    {...props}
+  />
+));
+Card.displayName = "Card";
 
-Card.displayName = 'Card';
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 pb-4", className)}
+    {...props}
+  />
+));
+CardHeader.displayName = "CardHeader";
 
-export { Card }; 
+const CardTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn("font-semibold text-xl leading-none tracking-tight", className)}
+    {...props}
+  />
+));
+CardTitle.displayName = "CardTitle";
+
+const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm text-foreground/60", className)}
+    {...props}
+  />
+));
+CardDescription.displayName = "CardDescription";
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("pt-0", className)} {...props} />
+));
+CardContent.displayName = "CardContent";
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center pt-4", className)}
+    {...props}
+  />
+));
+CardFooter.displayName = "CardFooter";
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }; 
