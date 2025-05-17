@@ -1,13 +1,13 @@
 "use client";
+
 import { ImageConverter } from '@/components/converters/image-converter';
 import { VideoConverter } from '@/components/converters/video-converter';
 import { AudioConverter } from '@/components/converters/audio-converter';
 import { DocumentConverter } from '@/components/converters/document-converter';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { FileImage, FileVideo, FileAudio, FileText, Zap, Sparkles, Settings, ChevronRight, ArrowRight, Workflow } from 'lucide-react';
+import { FileImage, FileVideo, FileAudio, FileText, Zap, Sparkles, LayoutGrid, ArrowRight, Workflow, ChevronRight, Settings } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
-// Base component for all bento cards
 function BentoCard({ 
   className, 
   children, 
@@ -37,151 +37,160 @@ function BentoCard({
 }
 
 export default function Home() {
-  // Active converter state
   const [activeConverter, setActiveConverter] = useState<string>('image');
   
-  // Function to show appropriate converter based on active state
   const renderConverter = () => {
     switch (activeConverter) {
-      case 'image':
-        return <ImageConverter />;
-      case 'video':
-        return <VideoConverter />;
-      case 'audio':
-        return <AudioConverter />;
-      case 'document':
-        return <DocumentConverter />;
-      default:
-        return <ImageConverter />;
+      case 'image': return <ImageConverter />;
+      case 'video': return <VideoConverter />;
+      case 'audio': return <AudioConverter />;
+      case 'document': return <DocumentConverter />;
+      default: return <ImageConverter />;
     }
   };
 
-  // Function for converter type selection
-  const ConverterTypeButton = ({ 
-    type, 
-    icon: Icon, 
-    label 
-  }: { 
-    type: string; 
-    icon: React.ElementType; 
-    label: string 
-  }) => (
-    <button
-      onClick={() => setActiveConverter(type)}
-      className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-        activeConverter === type
-          ? 'bg-primary/10 text-primary'
-          : 'hover:bg-card/80 text-foreground/70'
-      }`}
-    >
-      <div className={`neomorphic-${activeConverter === type ? 'icon' : 'inset'}`}>
-        <Icon className="h-5 w-5" />
-      </div>
-      <span className="font-medium">{label}</span>
-      {activeConverter === type && (
-        <ChevronRight className="h-4 w-4 ml-auto text-primary" />
-      )}
-    </button>
-  );
-
   return (
-    <div className="bento-grid w-full">
-      {/* Logo & App Title */}
-      <BentoCard colSpan={3} rowSpan={1} className="flex items-center gap-4">
-        <div className="neomorphic-icon bg-gradient-to-br from-primary/30 to-primary">
-          <Zap className="h-6 w-6 text-white" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">ConvertMaster</h1>
-          <p className="text-foreground/70 text-sm">Ultra-modern file conversion</p>
-        </div>
-      </BentoCard>
-
-      {/* Features Highlight */}
-      <BentoCard colSpan={9} rowSpan={1} className="flex gap-6 items-center justify-between overflow-hidden group">
-        <div className="flex items-center gap-6">
-          <div className="neomorphic-icon">
-            <Sparkles className="h-5 w-5 text-primary" />
+    <div className="w-full h-full flex items-center justify-center">
+      <div className="grid grid-cols-4 auto-rows-min gap-6 w-full max-w-[1100px] mx-auto p-6">
+        {/* Logo - spans 1 column */}
+        <div className="bento-card flex items-center gap-3 col-span-1 row-span-1" style={{ gridColumn: "1", gridRow: "1" }}>
+          <div className="neomorphic-icon bg-gradient-to-br from-primary/40 to-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.7)] ring-1 ring-primary/40">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              className="text-white filter drop-shadow-[0_0_5px_rgba(255,255,255,0.9)] drop-shadow-[0_0_3px_rgba(var(--primary-rgb),1)] animate-pulse-subtle"
+              viewBox="0 0 24 24"
+            >
+              <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+            </svg>
           </div>
-          <h2 className="text-lg font-medium">Modern, beautiful file conversion with a single-viewport experience</h2>
+          <h1 className="text-lg font-bold">ConvertMaster</h1>
         </div>
-        <div className="flex -space-x-2">
-          <div className="h-12 w-12 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 border-2 border-white"></div>
-          <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 border-2 border-white"></div>
-          <div className="h-12 w-12 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 border-2 border-white"></div>
-          <div className="h-12 w-12 rounded-full flex items-center justify-center bg-primary border-2 border-white text-white text-xs font-bold">+5</div>
+        
+        {/* Tag line - spans 2 columns */}
+        <div className="bento-card col-span-2 row-span-1 flex items-center" style={{ gridColumn: "2 / span 2", gridRow: "1" }}>
+          <p className="text-foreground/70">Transform your files with our modern, intuitive UI</p>
         </div>
-      </BentoCard>
+        
+        {/* Empty space for asymmetry */}
 
-      {/* Converter Selection Sidebar */}
-      <BentoCard colSpan={3} rowSpan={4} className="flex flex-col">
-        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <Settings className="h-4 w-4" />
-          Choose Converter
-        </h3>
-        
-        <div className="space-y-2">
-          <ConverterTypeButton 
-            type="image" 
-            icon={FileImage} 
-            label="Image Converter" 
-          />
-          <ConverterTypeButton 
-            type="video" 
-            icon={FileVideo} 
-            label="Video Converter" 
-          />
-          <ConverterTypeButton 
-            type="audio" 
-            icon={FileAudio} 
-            label="Audio Converter" 
-          />
-          <ConverterTypeButton 
-            type="document" 
-            icon={FileText} 
-            label="Document Converter" 
-          />
-        </div>
-        
-        <div className="mt-auto pt-6 relative">
-          <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--card))] via-transparent to-transparent" />
-          <div className="relative">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/10">
-              <div className="neomorphic-icon bg-primary/10 mb-3">
-                <Workflow className="h-5 w-5 text-primary" />
-              </div>
-              <h4 className="font-medium mb-1">Batch Processing</h4>
-              <p className="text-sm text-foreground/70 mb-3">Convert multiple files at once with our premium plan</p>
-              <button className="text-sm font-medium text-primary flex items-center gap-1 group">
-                Learn more
-                <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-              </button>
+        {/* Floating converter type buttons - spans 1 column, 2 rows */}
+        <div className="bento-card col-span-1 row-span-2 flex flex-col gap-3" style={{ gridColumn: "1", gridRow: "2 / span 2" }}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="neomorphic-inset bg-primary/10">
+              <Settings className="h-4 w-4 text-primary" />
             </div>
+            <h3 className="text-sm font-medium">File Type</h3>
           </div>
+          
+          <Button 
+            variant="secondary" 
+            isActive={activeConverter === 'image'}
+            onClick={() => setActiveConverter('image')}
+            className="justify-start h-auto py-2"
+          >
+            <FileImage className="h-4 w-4 mr-2" />
+            <span>Images</span>
+          </Button>
+          
+          <Button 
+            variant="secondary" 
+            isActive={activeConverter === 'video'}
+            onClick={() => setActiveConverter('video')}
+            className="justify-start h-auto py-2"
+          >
+            <FileVideo className="h-4 w-4 mr-2" />
+            <span>Videos</span>
+          </Button>
+          
+          <Button 
+            variant="secondary" 
+            isActive={activeConverter === 'audio'}
+            onClick={() => setActiveConverter('audio')}
+            className="justify-start h-auto py-2"
+          >
+            <FileAudio className="h-4 w-4 mr-2" />
+            <span>Audio</span>
+          </Button>
+          
+          <Button 
+            variant="secondary" 
+            isActive={activeConverter === 'document'}
+            onClick={() => setActiveConverter('document')}
+            className="justify-start h-auto py-2"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            <span>Documents</span>
+          </Button>
         </div>
-      </BentoCard>
-
-      {/* Main Converter Area */}
-      <BentoCard colSpan={9} rowSpan={4} className="overflow-hidden p-0 flex flex-col">
-        <div className="p-6 pb-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-bold">
-              {activeConverter.charAt(0).toUpperCase() + activeConverter.slice(1)} Converter
-            </h2>
+        
+        {/* Main converter area - spans 3 columns, 4 rows */}
+        <div className="bento-card col-span-3 row-span-4 flex flex-col" style={{ gridColumn: "2 / span 3", gridRow: "2 / span 4" }}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="neomorphic-icon">
+                {activeConverter === 'image' && <FileImage className="h-5 w-5 text-primary" />}
+                {activeConverter === 'video' && <FileVideo className="h-5 w-5 text-primary" />}
+                {activeConverter === 'audio' && <FileAudio className="h-5 w-5 text-primary" />}
+                {activeConverter === 'document' && <FileText className="h-5 w-5 text-primary" />}
+              </div>
+              <h2 className="text-xl font-bold">{activeConverter.charAt(0).toUpperCase() + activeConverter.slice(1)} Converter</h2>
+            </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
-              <span className="text-sm text-foreground/70">Ready to convert</span>
-            </div>
+              <span className="text-sm text-foreground/70">Ready</span>
+        </div>
+      </div>
+      
+          <div className="flex-1">
+            {renderConverter()}
           </div>
-          <p className="text-foreground/70">
-            Drop your files or select input and output formats to begin
-          </p>
         </div>
         
-        <div className="flex-1 bg-card/30 p-6 rounded-b-[var(--radius)]">
-          {renderConverter()}
+        {/* Feature highlight - spans 1 column, 2 rows, intentionally offset */}
+        <div className="bento-card col-span-1 row-span-2" style={{ gridColumn: "1", gridRow: "4 / span 2" }}>
+          <div className="neomorphic-icon mb-3 bg-primary/10">
+            <Sparkles className="h-5 w-5 text-primary" />
+          </div>
+          <h3 className="text-sm font-medium mb-2">High Quality</h3>
+          <p className="text-xs text-foreground/70">Preserve the quality of your files during conversion</p>
+      </div>
+      
+        {/* Info card - spans 2 columns, 1 row */}
+        <div className="bento-card col-span-2 row-span-1 flex items-center justify-between" style={{ gridColumn: "3 / span 2", gridRow: "6" }}>
+          <div className="flex items-center gap-3">
+            <div className="neomorphic-icon">
+              <LayoutGrid className="h-4 w-4 text-primary" />
+            </div>
+            <span className="text-sm">Modern bento layout</span>
+          </div>
+          <Button variant="ghost" size="sm" className="text-xs">
+            Learn more
+            <ArrowRight className="ml-1 h-3 w-3" />
+          </Button>
         </div>
-      </BentoCard>
+        
+        {/* Batch conversion promo - spans 2 columns */}
+        <div className="bento-card col-span-2 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" style={{ gridColumn: "1 / span 2", gridRow: "6" }}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="neomorphic-icon bg-primary/10">
+              <Workflow className="h-4 w-4 text-primary" />
+            </div>
+            <h3 className="text-sm font-medium">Batch Processing</h3>
+          </div>
+          <p className="text-xs text-foreground/70 mb-2">Convert multiple files at once with our premium plan</p>
+          <Button variant="ghost" size="sm" className="text-xs p-0 h-auto">
+            Upgrade
+            <ChevronRight className="ml-1 h-3 w-3" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

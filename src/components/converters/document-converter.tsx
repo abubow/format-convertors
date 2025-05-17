@@ -27,7 +27,6 @@ export function DocumentConverter() {
     
     const inputFormat = getFileExtension(files[0].name);
     
-    // Check if all files have the same format
     const allSameFormat = files.every(file => getFileExtension(file.name) === inputFormat);
     
     if (!allSameFormat) return [];
@@ -40,10 +39,7 @@ export function DocumentConverter() {
     
     setConverting(true);
     
-    // In a real application, you would send the files to a server for conversion
-    // For demo purposes, let's simulate conversion with a delay
     setTimeout(() => {
-      // Create fake object URLs for demo
       const fakeUrls = files.map(file => URL.createObjectURL(file));
       setConvertedUrls(fakeUrls);
       setConverting(false);

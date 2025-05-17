@@ -49,6 +49,15 @@ const config: Config = {
         md: 'calc(var(--radius) - 0.25rem)',
         sm: 'calc(var(--radius) - 0.5rem)',
       },
+      keyframes: {
+        'pulse-subtle': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.8', filter: 'brightness(1.2) drop-shadow(0 0 8px currentColor)' },
+        },
+      },
+      animation: {
+        'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
+      },
     },
   },
 };

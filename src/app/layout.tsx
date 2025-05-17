@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Outfit } from "next/font/google";
 import "./globals.css";
 
-// Google font definitions
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
   weight: ['400', '500', '700'],

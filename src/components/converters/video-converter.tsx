@@ -1,137 +1,185 @@
 "use client"
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Dropzone } from '@/components/ui/dropzone';
 import { fileTypes } from '@/lib/utils';
-import { Download, RefreshCw, Zap, Film } from 'lucide-react';
+import { Download, RefreshCw, Zap, Film, Check, Clock, AlertCircle } from 'lucide-react';
+import { useMediaConverter, ServerFormats } from '@/lib/hooks/useMediaConverter';
 
 export function VideoConverter() {
-  const [files, setFiles] = useState<File[]>([]);
-  const [outputFormat, setOutputFormat] = useState<string>('');
-  const [converting, setConverting] = useState<boolean>(false);
-  const [convertedUrls, setConvertedUrls] = useState<string[]>([]);
-
-  const handleFileSelect = (selectedFiles: File[]) => {
-    setFiles(selectedFiles);
-    setConvertedUrls([]);
-    setOutputFormat('');
-  };
-
-  const getFileExtension = (filename: string): string => {
-    return filename.slice(((filename.lastIndexOf('.') - 1) >>> 0) + 2).toLowerCase();
-  };
-
-  const getAvailableFormats = (): string[] => {
-    if (files.length === 0) return [];
-    
-    const inputFormat = getFileExtension(files[0].name);
-    
+  const getVideoAvailableFormats = (formats: ServerFormats | null, inputFormat: string): string[] => {
     // Check if all files have the same format
-    const allSameFormat = files.every(file => getFileExtension(file.name) === inputFormat);
+    if (!inputFormat) return [];
     
-    if (!allSameFormat) return [];
+    // If we have server formats, use them directly
+    if (formats) {
+      // For video-to-audio conversions, also show audio formats
+      return [...formats.video, ...formats.audio];
+    }
     
+    // Fallback to client-side formats
     return (fileTypes.video.conversions as Record<string, string[]>)[inputFormat] || [];
   };
 
-  const handleConvert = async () => {
-    if (files.length === 0 || !outputFormat) return;
-    
-    setConverting(true);
-    
-    // In a real application, you would send the files to a server for conversion
-    // For demo purposes, let's simulate conversion with a delay
-    setTimeout(() => {
-      // Create fake object URLs for demo
-      const fakeUrls = files.map(file => URL.createObjectURL(file));
-      setConvertedUrls(fakeUrls);
-      setConverting(false);
-    }, 2000);
-  };
+  const {
+    files,
+    outputFormat,
+    converting,
+    convertedUrls,
+    error,
+    serverFormats,
+    availableFormats,
+    handleFileSelect,
+    setOutputFormat,
+    handleConvert,
+    resetConverter,
+    formatFileSize,
+    formatDuration,
+  } = useMediaConverter({
+    mediaType: 'video',
+    getAvailableFormats: getVideoAvailableFormats
+  });
   
   return (
-    <Card className="w-full">
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-amber-900 mb-1">Video Converter</h2>
-          <p className="text-amber-700">Convert your videos to different formats with ease</p>
-        </div>
-        
+    <div className="space-y-6">
+      {files.length === 0 ? (
         <Dropzone
           onFileSelect={handleFileSelect}
           accept={{
             'video/*': fileTypes.video.formats.map(format => `.${format}`)
           }}
+          className="h-[300px]"
         />
-        
-        {files.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-3">
-              <p className="text-sm font-medium text-amber-800 w-full mb-1">Convert to:</p>
-              {getAvailableFormats().map((format) => (
-                <Button
-                  key={format}
-                  size="sm"
-                  variant={outputFormat === format ? 'primary' : 'secondary'}
-                  onClick={() => setOutputFormat(format)}
-                  className="capitalize"
+      ) : (
+        <div className="space-y-6">
+          {convertedUrls.length === 0 ? (
+            <>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="neomorphic-icon">
+                    <Film className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="font-medium">Select output format</h3>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={resetConverter}
                 >
-                  {format}
+                  Start over
                 </Button>
-              ))}
-            </div>
-            
-            <Button
-              onClick={handleConvert}
-              disabled={!outputFormat || converting}
-              className="w-full"
-            >
-              {converting ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Converting...
-                </>
-              ) : (
-                <>
-                  <Zap className="mr-2 h-4 w-4" />
-                  Convert
-                </>
+              </div>
+              
+              <div className="bento-card p-4">
+                <p className="text-sm text-foreground/70 mb-2">
+                  Input file: <span className="font-medium">{files[0].name}</span> ({formatFileSize(files[0].size)})
+                </p>
+                <p className="text-sm text-foreground/70 mb-3">Convert to:</p>
+                <div className="flex flex-wrap gap-2">
+                  {availableFormats.map((format) => (
+                    <Button
+                      key={format}
+                      size="sm"
+                      variant="secondary"
+                      isActive={outputFormat === format}
+                      onClick={() => setOutputFormat(format)}
+                      className="capitalize"
+                    >
+                      {outputFormat === format && <Check className="mr-1.5 h-3 w-3" />}
+                      {format}
+                    </Button>
+                  ))}
+                </div>
+                
+                {serverFormats && serverFormats.audio.includes(outputFormat) && (
+                  <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
+                    Note: Converting to {outputFormat} will create an audio-only file.
+                  </div>
+                )}
+              </div>
+              
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700">
+                  <AlertCircle className="h-4 w-4" />
+                  <p className="text-sm">{error}</p>
+                </div>
               )}
-            </Button>
-            
-            {convertedUrls.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-amber-800">Converted files:</p>
-                <div className="grid grid-cols-1 gap-3">
-                  {convertedUrls.map((url, index) => (
-                    <div key={index} className="relative group bg-black/5 rounded-lg p-3 shadow-[4px_4px_8px_rgba(0,0,0,0.05),-4px_-4px_8px_rgba(255,255,255,0.9)]">
+              
+              <Button
+                onClick={handleConvert}
+                disabled={!outputFormat || converting}
+                className="w-full"
+              >
+                {converting ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Converting...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="mr-2 h-4 w-4" />
+                    Convert now
+                  </>
+                )}
+              </Button>
+            </>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <h3 className="font-medium text-green-600">Conversion complete</h3>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={resetConverter}
+                >
+                  Convert another
+                </Button>
+              </div>
+              
+              <div className="max-h-[320px] overflow-y-auto pr-1">
+                <div className="space-y-3">
+                  {convertedUrls.map((item, index) => (
+                    <div key={index} className="bento-card p-3">
                       <div className="flex items-center">
-                        <Film className="h-8 w-8 text-amber-600 mr-3" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-amber-800 truncate">
-                            {files[index]?.name || `Video ${index + 1}`}
+                        <div className="neomorphic-icon mr-3">
+                          <Film className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">
+                            {item.filename}
                           </p>
-                          <p className="text-xs text-amber-600">
-                            Converted to {outputFormat}
-                          </p>
+                          <div className="flex items-center gap-2 text-xs text-foreground/70">
+                            <span>{outputFormat.toUpperCase()}</span>
+                            {item.size && <span>• {formatFileSize(item.size)}</span>}
+                            {item.duration && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {formatDuration(item.duration)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <a
-                          href={url}
-                          download={`converted-${index + 1}.${outputFormat}`}
-                          className="p-2 rounded-full bg-amber-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] hover:bg-amber-200 transition-colors"
+                          href={item.url}
+                          download={item.filename}
+                          className="ml-2"
                         >
-                          <Download className="h-4 w-4 text-amber-800" />
+                          <Button size="sm" variant="secondary">
+                            <Download className="h-4 w-4" />
+                          </Button>
                         </a>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-        )}
-      </div>
-    </Card>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 } 
