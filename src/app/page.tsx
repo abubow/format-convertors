@@ -7,6 +7,7 @@ import { DocumentConverter } from '@/components/converters/document-converter';
 import { FileImage, FileVideo, FileAudio, FileText, Zap, Sparkles, LayoutGrid, ArrowRight, Workflow, ChevronRight, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 function BentoCard({ 
   className, 
@@ -168,9 +169,9 @@ export default function Home() {
             <div className="neomorphic-icon">
               <LayoutGrid className="h-4 w-4 text-primary" />
             </div>
-            <span className="text-sm">Modern bento layout</span>
+            <span className="text-sm">Made with ❤️ by <Link href="https://hestiabyte.com" target="_blank" className="text-primary hover:underline">HestiaByte</Link></span>
           </div>
-          <Button variant="ghost" size="sm" className="text-xs">
+          <Button variant="ghost" size="sm" className="text-xs" onClick={() => window.open('https://hestiabyte.com', '_blank')}>
             Learn more
             <ArrowRight className="ml-1 h-3 w-3" />
           </Button>

@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ConvertMaster - Document Conversion
+
+A modern web application for converting documents between various formats.
+
+## Features
+
+- Convert documents to various formats:
+  - PDF to DOCX, DOC, TXT, HTML
+  - DOCX/DOC to PDF, TXT, HTML
+  - HTML to PDF, TXT, MD
+  - TXT to PDF, HTML, MD
+  - And more!
+- Modern, intuitive UI
+- Real-time conversion status
+- Clean, responsive design
+- Error handling
+
+## System Requirements
+
+For document conversion to work, you need to install:
+
+1. **LibreOffice** - Used for most document conversions
+   - Download from: https://www.libreoffice.org/download/download-libreoffice/
+
+2. **Pandoc** - Used for text-based format conversions
+   - Download from: https://pandoc.org/installing.html
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Start the development server:
+   ```
+   npm run dev
+   ```
+4. Open http://localhost:3000 in your browser
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## API Endpoints
+
+### Convert Document
+
+```
+POST /api/convert/document
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Parameters (form-data):
+- `file`: Document file to convert
+- `targetFormat`: Format to convert to (pdf, docx, doc, txt, html, md, etc.)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Response:
+```json
+{
+  "success": true,
+  "conversionId": "uuid-string",
+  "originalName": "document.pdf",
+  "targetFormat": "docx",
+  "downloadUrl": "/api/convert/document/download?id=uuid-string&name=document.docx"
+}
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Check Conversion Status
 
-## Learn More
+```
+GET /api/convert/document/status?id=[conversionId]&name=[filename].[format]
+```
 
-To learn more about Next.js, take a look at the following resources:
+Response:
+```json
+{
+  "id": "uuid-string",
+  "status": "complete", // or "processing"
+  "downloadUrl": "/api/convert/document/download?id=uuid-string&name=document.docx"
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Download Converted File
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+GET /api/convert/document/download?id=[conversionId]&name=[filename].[format]
+```
 
-## Deploy on Vercel
+Response: The converted file as a downloadable binary
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## How It Works
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. File Upload: The user uploads a document file and selects the desired output format.
+2. API Processing: The backend uses LibreOffice and Pandoc to convert the document.
+3. Download: The user can download the converted file once processing is complete.
+
+## Dependencies Used
+
+- LibreOffice Convert: For document format conversion
+- Pandoc: For text-based format conversion
+- UUID: For generating unique conversion IDs
+- Next.js: For the web framework and API routes

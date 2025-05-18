@@ -74,34 +74,34 @@
   
   .bento-card {
     @apply rounded-[var(--radius)] p-6 relative backdrop-blur-sm transition-all duration-300;
-    background: linear-gradient(145deg, hsl(var(--card) / 0.8), hsl(var(--card) / 0.4));
+    background: linear-gradient(145deg, hsl(var(--card) / 0.9), hsl(var(--card) / 0.3));
     box-shadow: 
-      var(--shadow-distance) var(--shadow-distance) var(--shadow-blur) hsla(var(--shadow-color) / var(--shadow-intensity)),
-      calc(var(--shadow-distance) * -1) calc(var(--shadow-distance) * -1) var(--shadow-blur) hsla(var(--shadow-light) / var(--shadow-intensity));
+      var(--shadow-distance) var(--shadow-distance) var(--shadow-blur) hsla(var(--shadow-color) / 0.4),
+      calc(var(--shadow-distance) * -1) calc(var(--shadow-distance) * -1) var(--shadow-blur) hsla(var(--shadow-light) / 0.6);
   }
   
   .bento-card:hover {
-    background: linear-gradient(145deg, hsl(var(--card) / 0.9), hsl(var(--card) / 0.5));
+    background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--card) / 0.4));
     box-shadow: 
-      calc(var(--shadow-distance) * 1.2) calc(var(--shadow-distance) * 1.2) calc(var(--shadow-blur) * 1.2) hsla(var(--shadow-color) / var(--shadow-intensity)),
-      calc(var(--shadow-distance) * -1.2) calc(var(--shadow-distance) * -1.2) calc(var(--shadow-blur) * 1.2) hsla(var(--shadow-light) / var(--shadow-intensity));
-    transform: translateY(-2px);
+      calc(var(--shadow-distance) * 1.2) calc(var(--shadow-distance) * 1.2) calc(var(--shadow-blur) * 1.2) hsla(var(--shadow-color) / 0.5),
+      calc(var(--shadow-distance) * -1.2) calc(var(--shadow-distance) * -1.2) calc(var(--shadow-blur) * 1.2) hsla(var(--shadow-light) / 0.7);
+    transform: translateY(-3px);
   }
   
   .neomorphic-icon {
     @apply rounded-full p-3 inline-flex items-center justify-center;
-    background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--card) / 0.7));
+    background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--card) / 0.6));
     box-shadow: 
-      4px 4px 8px hsla(var(--shadow-color) / var(--shadow-intensity)),
-      -4px -4px 8px hsla(var(--shadow-light) / var(--shadow-intensity));
+      4px 4px 8px hsla(var(--shadow-color) / 0.45),
+      -4px -4px 8px hsla(var(--shadow-light) / 0.65);
   }
   
   .neomorphic-inset {
     @apply rounded-full p-3 inline-flex items-center justify-center;
-    background: linear-gradient(145deg, hsl(var(--card) / 0.7), hsl(var(--card)));
+    background: linear-gradient(145deg, hsl(var(--card) / 0.6), hsl(var(--card)));
     box-shadow: 
-      inset 4px 4px 8px hsla(var(--shadow-color) / var(--shadow-inner-intensity)),
-      inset -4px -4px 8px hsla(var(--shadow-light) / var(--shadow-inner-intensity));
+      inset 4px 4px 8px hsla(var(--shadow-color) / 0.2),
+      inset -4px -4px 8px hsla(var(--shadow-light) / 0.3);
   }
   
   .glass-effect {
