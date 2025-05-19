@@ -1,10 +1,20 @@
 import path from 'path';
 import { mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
+import { getTempDir } from '@/lib/serverless-utils';
 
-// Define the upload and output directories
-export const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
-export const OUTPUT_DIR = path.join(process.cwd(), 'output');
+// Define the upload and output directories using /tmp on Vercel
+export const UPLOAD_DIR = path.join(getTempDir(), 'uploads');
+export const OUTPUT_DIR = path.join(getTempDir(), 'output');
+
+// Content type mapping for downloads
+export const contentTypeMap: Record<string, string> = {
+  'html': 'text/html',
+  'txt': 'text/plain',
+  'md': 'text/markdown',
+  'pdf': 'application/pdf',
+  'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+};
 
 // Ensure directories exist
 export async function ensureDirectoriesExist() {
@@ -14,16 +24,4 @@ export async function ensureDirectoriesExist() {
   if (!existsSync(OUTPUT_DIR)) {
     await mkdir(OUTPUT_DIR, { recursive: true });
   }
-}
-
-// Map of content types for different file extensions
-export const contentTypeMap: Record<string, string> = {
-  'pdf': 'application/pdf',
-  'doc': 'application/msword',
-  'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'txt': 'text/plain',
-  'html': 'text/html',
-  'md': 'text/markdown',
-  'rtf': 'application/rtf',
-  'odt': 'application/vnd.oasis.opendocument.text'
-}; 
+} 

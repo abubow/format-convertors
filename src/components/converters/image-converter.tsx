@@ -9,7 +9,7 @@ import { saveAs } from 'file-saver';
 import Image from 'next/image';
 
 interface ConversionResult {
-  url: string;
+  dataUrl: string;
   filename: string;
 }
 
@@ -26,7 +26,7 @@ export function ImageConverter() {
   const [files, setFiles] = useState<File[]>([]);
   const [outputFormat, setOutputFormat] = useState<string>('');
   const [converting, setConverting] = useState<boolean>(false);
-  const [convertedUrls, setConvertedUrls] = useState<Array<{url: string, originalName: string}>>([]);
+  const [convertedUrls, setConvertedUrls] = useState<Array<{dataUrl: string, originalName: string}>>([]);
   const [activeJobs, setActiveJobs] = useState<ConversionJob[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,7 +78,7 @@ export function ImageConverter() {
         const successfulResults = updatedJobs
           .filter(job => job.status === 'completed' && job.result)
           .map(job => ({
-            url: job.result!.url,
+            dataUrl: job.result!.dataUrl,
             originalName: job.originalName
           }));
         
@@ -176,16 +176,13 @@ export function ImageConverter() {
     try {
       const zip = new JSZip();
       
-      // Create an array of promises for fetching files
-      const downloadPromises = convertedUrls.map(async (item) => {
-        const response = await fetch(item.url);
-        const blob = await response.blob();
+      // Add files directly from dataUrls to the zip
+      convertedUrls.forEach((item) => {
+        // Extract base64 data from dataUrl
+        const base64Data = item.dataUrl.split(',')[1];
         const filename = `${getFilenameWithoutExtension(item.originalName)}.${outputFormat}`;
-        zip.file(filename, blob);
+        zip.file(filename, base64Data, {base64: true});
       });
-      
-      // Wait for all downloads to complete
-      await Promise.all(downloadPromises);
       
       // Generate and save the zip file
       const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -304,7 +301,7 @@ export function ImageConverter() {
                   {convertedUrls.map((item, index) => (
                     <div key={index} className="group relative bento-card p-4 overflow-hidden aspect-square">
                       <Image
-                        src={item.url}
+                        src={item.dataUrl}
                         alt={`Converted ${getFilenameWithoutExtension(item.originalName)}.${outputFormat}`}
                         fill
                         sizes="(max-width: 768px) 100vw, 25vh"
@@ -318,7 +315,7 @@ export function ImageConverter() {
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end p-4">
                         <a
-                          href={item.url}
+                          href={item.dataUrl}
                           download={`${getFilenameWithoutExtension(item.originalName)}.${outputFormat}`}
                           className="w-full"
                         >

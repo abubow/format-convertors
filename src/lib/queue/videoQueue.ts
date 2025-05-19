@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import ffmpeg from 'fluent-ffmpeg';
 import { existsSync } from 'fs';
+import { getTempDir, ensureTempDir, writeTempFile, cleanupTempFile } from '@/lib/serverless-utils';
 
 export interface VideoConversionJob {
   id: string;
@@ -26,8 +27,7 @@ class VideoConversionQueue {
   private queue: VideoConversionJob[] = [];
   private processing: boolean = false;
   private results: Map<string, VideoConversionJob> = new Map();
-  private readonly uploadDir: string = path.join(process.cwd(), 'public', 'uploads');
-  private readonly tempDir: string = path.join(process.cwd(), 'tmp');
+  private readonly tempDir: string;
   
   private readonly supportedVideoFormats = [
     'mp4', 'webm', 'mov', 'avi', 'mkv', 'flv', 'wmv', 'mpg', 'mpeg', '3gp', 'm4v', 'ts', 'mts', 'ogg'
@@ -38,6 +38,7 @@ class VideoConversionQueue {
   ];
   
   constructor() {
+    this.tempDir = getTempDir();
     this.ensureDirectories();
   }
   
@@ -62,8 +63,7 @@ class VideoConversionQueue {
   
   private async ensureDirectories() {
     try {
-      await fs.mkdir(this.uploadDir, { recursive: true });
-      await fs.mkdir(this.tempDir, { recursive: true });
+      await ensureTempDir();
     } catch (error) {
       console.error('Failed to create necessary directories:', error);
     }
@@ -84,13 +84,10 @@ class VideoConversionQueue {
       }`);
     }
     
-    // Audio format check (for future use)
-    // const isOutputAudio = this.isAudioFormat(normalizedOutputFormat);
-    
     const jobId = uuidv4();
     
-    const tempFilePath = path.join(this.tempDir, `${jobId}_input.${normalizedInputFormat}`);
-    await fs.writeFile(tempFilePath, fileBuffer);
+    const tempFilename = `${jobId}_input.${normalizedInputFormat}`;
+    const tempFilePath = await writeTempFile(fileBuffer, tempFilename);
     
     const job: VideoConversionJob = {
       id: jobId,
@@ -137,7 +134,7 @@ class VideoConversionQueue {
       this.results.set(job.id, job);
       
       const outputFilename = `${this.getFilenameWithoutExtension(job.originalName)}_${Date.now()}.${job.outputFormat}`;
-      const outputPath = path.join(this.uploadDir, outputFilename);
+      const outputPath = path.join(this.tempDir, outputFilename);
       
       await this.convertVideo(job.originalFilePath, outputPath, job.outputFormat);
       
@@ -148,7 +145,7 @@ class VideoConversionQueue {
       
       job.status = 'completed';
       job.result = {
-        url: `/uploads/${outputFilename}`,
+        url: `/api/convert/video/download?id=${job.id}&filename=${outputFilename}`,
         filename: outputFilename,
         size: fileSizeInBytes,
         duration: fileDuration
@@ -156,7 +153,7 @@ class VideoConversionQueue {
       job.updatedAt = new Date();
       this.results.set(job.id, job);
       
-      await this.cleanupTempFile(job.originalFilePath);
+      await cleanupTempFile(job.originalFilePath);
       
     } catch (error) {
       job.status = 'failed';
@@ -165,7 +162,7 @@ class VideoConversionQueue {
       this.results.set(job.id, job);
       console.error(`Error processing job ${job.id}:`, error);
       
-      await this.cleanupTempFile(job.originalFilePath);
+      await cleanupTempFile(job.originalFilePath);
     }
     
     this.processing = false;
@@ -376,13 +373,7 @@ class VideoConversionQueue {
   }
   
   private async cleanupTempFile(filePath: string): Promise<void> {
-    try {
-      if (existsSync(filePath)) {
-        await fs.unlink(filePath);
-      }
-    } catch (error) {
-      console.error(`Failed to remove temporary file ${filePath}:`, error);
-    }
+    await cleanupTempFile(filePath);
   }
   
   public cleanupResults(maxAgeMs: number = 3600000) { // Default: 1 hour

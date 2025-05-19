@@ -1,7 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
-import path from 'path';
-import fs from 'fs/promises';
 
 export interface ConversionJob {
   id: string;
@@ -11,7 +9,7 @@ export interface ConversionJob {
   outputFormat: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   result?: {
-    url: string;
+    dataUrl: string;
     filename: string;
   };
   error?: string;
@@ -23,19 +21,6 @@ class ImageConversionQueue {
   private queue: ConversionJob[] = [];
   private processing: boolean = false;
   private results: Map<string, ConversionJob> = new Map();
-  private readonly uploadDir: string = path.join(process.cwd(), 'public', 'uploads');
-  
-  constructor() {
-    this.ensureUploadDir();
-  }
-  
-  private async ensureUploadDir() {
-    try {
-      await fs.mkdir(this.uploadDir, { recursive: true });
-    } catch (error) {
-      console.error('Failed to create uploads directory:', error);
-    }
-  }
   
   public async addJob(
     file: Buffer,
@@ -90,7 +75,6 @@ class ImageConversionQueue {
       this.results.set(job.id, job);
       
       const outputFilename = `${this.getFilenameWithoutExtension(job.originalName)}_${Date.now()}.${job.outputFormat}`;
-      const outputPath = path.join(this.uploadDir, outputFilename);
       
       let transformer = sharp(job.file);
       
@@ -115,11 +99,16 @@ class ImageConversionQueue {
           throw new Error(`Unsupported output format: ${job.outputFormat}`);
       }
       
-      await transformer.toFile(outputPath);
+      // Convert to buffer instead of writing to file
+      const outputBuffer = await transformer.toBuffer();
+      
+      // Convert buffer to base64 data URL
+      const mimeType = `image/${job.outputFormat.toLowerCase()}`;
+      const dataUrl = `data:${mimeType};base64,${outputBuffer.toString('base64')}`;
       
       job.status = 'completed';
       job.result = {
-        url: `/uploads/${outputFilename}`,
+        dataUrl: dataUrl,
         filename: outputFilename
       };
       job.updatedAt = new Date();
