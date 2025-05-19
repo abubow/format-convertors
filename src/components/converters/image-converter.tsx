@@ -11,6 +11,7 @@ import Image from 'next/image';
 interface ConversionResult {
   dataUrl: string;
   filename: string;
+  tooLarge?: boolean;
 }
 
 interface ConversionJob {
@@ -26,7 +27,7 @@ export function ImageConverter() {
   const [files, setFiles] = useState<File[]>([]);
   const [outputFormat, setOutputFormat] = useState<string>('');
   const [converting, setConverting] = useState<boolean>(false);
-  const [convertedUrls, setConvertedUrls] = useState<Array<{dataUrl: string, originalName: string}>>([]);
+  const [convertedUrls, setConvertedUrls] = useState<Array<{dataUrl: string, originalName: string, tooLarge?: boolean}>>([]);
   const [activeJobs, setActiveJobs] = useState<ConversionJob[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,7 +80,8 @@ export function ImageConverter() {
           .filter(job => job.status === 'completed' && job.result)
           .map(job => ({
             dataUrl: job.result!.dataUrl,
-            originalName: job.originalName
+            originalName: job.originalName,
+            tooLarge: job.result!.tooLarge
           }));
         
         if (successfulResults.length > 0) {
@@ -176,13 +178,22 @@ export function ImageConverter() {
     try {
       const zip = new JSZip();
       
-      // Add files directly from dataUrls to the zip
-      convertedUrls.forEach((item) => {
+      // We'll need to handle too-large files separately through an API endpoint
+      const largeFiles = convertedUrls.filter(item => item.tooLarge);
+      const smallFiles = convertedUrls.filter(item => !item.tooLarge);
+      
+      // Add small files directly from dataUrls to the zip
+      smallFiles.forEach((item) => {
         // Extract base64 data from dataUrl
         const base64Data = item.dataUrl.split(',')[1];
         const filename = `${getFilenameWithoutExtension(item.originalName)}.${outputFormat}`;
         zip.file(filename, base64Data, {base64: true});
       });
+      
+      // If there are large files, we need to inform the user
+      if (largeFiles.length > 0) {
+        setError(`${largeFiles.length} large image(s) couldn't be included in the zip. Please download them individually.`);
+      }
       
       // Generate and save the zip file
       const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -300,14 +311,23 @@ export function ImageConverter() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {convertedUrls.map((item, index) => (
                     <div key={index} className="group relative bento-card p-4 overflow-hidden aspect-square">
-                      <Image
-                        src={item.dataUrl}
-                        alt={`Converted ${getFilenameWithoutExtension(item.originalName)}.${outputFormat}`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 25vh"
-                        priority
-                        className="object-cover p-2"
-                      />
+                      {item.tooLarge ? (
+                        <div className="flex h-full w-full items-center justify-center bg-gray-100">
+                          <div className="text-center p-2">
+                            <ImageIcon className="mx-auto h-10 w-10 text-gray-400" />
+                            <p className="mt-2 text-xs text-gray-500">Image too large to preview</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <Image
+                          src={item.dataUrl}
+                          alt={`Converted ${getFilenameWithoutExtension(item.originalName)}.${outputFormat}`}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 25vh"
+                          priority
+                          className="object-cover p-2"
+                        />
+                      )}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent py-2 px-3 z-10">
                         <p className="text-white text-xs truncate">
                           {getFilenameWithoutExtension(item.originalName)}.{outputFormat}

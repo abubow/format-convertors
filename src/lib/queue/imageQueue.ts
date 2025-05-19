@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 
+// Maximum size for data URLs in bytes (4MB)
+const MAX_DATA_URL_SIZE = 4 * 1024 * 1024;
+
 export interface ConversionJob {
   id: string;
   file: Buffer;
@@ -11,6 +14,7 @@ export interface ConversionJob {
   result?: {
     dataUrl: string;
     filename: string;
+    tooLarge?: boolean;
   };
   error?: string;
   createdAt: Date;
@@ -76,21 +80,28 @@ class ImageConversionQueue {
       
       const outputFilename = `${this.getFilenameWithoutExtension(job.originalName)}_${Date.now()}.${job.outputFormat}`;
       
+      // Process the image with Sharp
       let transformer = sharp(job.file);
+      
+      // If input file is large, resize it to reduce final size
+      const metadata = await transformer.metadata();
+      if (metadata.width && metadata.width > 1500) {
+        transformer = transformer.resize(1500);
+      }
       
       switch (job.outputFormat.toLowerCase()) {
         case 'jpeg':
         case 'jpg':
-          transformer = transformer.jpeg({ quality: 90 });
+          transformer = transformer.jpeg({ quality: 85 });
           break;
         case 'png':
-          transformer = transformer.png();
+          transformer = transformer.png({ compressionLevel: 8 });
           break;
         case 'webp':
-          transformer = transformer.webp();
+          transformer = transformer.webp({ quality: 80 });
           break;
         case 'avif':
-          transformer = transformer.avif();
+          transformer = transformer.avif({ quality: 70 });
           break;
         case 'gif':
           transformer = transformer.gif();
@@ -99,17 +110,27 @@ class ImageConversionQueue {
           throw new Error(`Unsupported output format: ${job.outputFormat}`);
       }
       
-      // Convert to buffer instead of writing to file
+      // Convert to buffer
       const outputBuffer = await transformer.toBuffer();
       
-      // Convert buffer to base64 data URL
-      const mimeType = `image/${job.outputFormat.toLowerCase()}`;
-      const dataUrl = `data:${mimeType};base64,${outputBuffer.toString('base64')}`;
+      // Check if the file is too large to be stored as a data URL
+      const isTooLarge = outputBuffer.length > MAX_DATA_URL_SIZE;
+      let dataUrl = '';
+      
+      if (!isTooLarge) {
+        // Convert buffer to base64 data URL
+        const mimeType = `image/${job.outputFormat.toLowerCase()}`;
+        dataUrl = `data:${mimeType};base64,${outputBuffer.toString('base64')}`;
+      } else {
+        // For large files, provide a placeholder
+        dataUrl = '/image-too-large.svg';
+      }
       
       job.status = 'completed';
       job.result = {
         dataUrl: dataUrl,
-        filename: outputFilename
+        filename: outputFilename,
+        tooLarge: isTooLarge
       };
       job.updatedAt = new Date();
       this.results.set(job.id, job);
@@ -133,7 +154,6 @@ class ImageConversionQueue {
       if ((now - job.updatedAt.getTime()) > maxAgeMs && 
           (job.status === 'completed' || job.status === 'failed')) {
         this.results.delete(jobId);
-        
       }
     }
   }

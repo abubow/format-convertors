@@ -1,0 +1,7 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#F5F5F5"/>
+  <path d="M100 80C93.3726 80 88 85.3726 88 92C88 98.6274 93.3726 104 100 104C106.627 104 112 98.6274 112 92C112 85.3726 106.627 80 100 80Z" fill="#A0A0A0"/>
+  <path d="M138 120H62L86 88L100 108L114 88L138 120Z" fill="#A0A0A0"/>
+  <path d="M56 60V140H144V60H56ZM140 136H60V64H140V136Z" fill="#A0A0A0"/>
+  <text x="100" y="150" font-family="Arial" font-size="10" text-anchor="middle" fill="#666666">Image too large to preview</text>
+</svg> 
