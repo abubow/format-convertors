@@ -84,7 +84,8 @@ class VideoConversionQueue {
       }`);
     }
     
-    const isOutputAudio = this.isAudioFormat(normalizedOutputFormat);
+    // Audio format check (for future use)
+    // const isOutputAudio = this.isAudioFormat(normalizedOutputFormat);
     
     const jobId = uuidv4();
     
@@ -401,7 +402,7 @@ class VideoConversionQueue {
   }
   
   private getFileDuration(filePath: string): Promise<number> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       ffmpeg.ffprobe(filePath, (err, metadata) => {
         if (err) {
           console.error('Error getting duration:', err);

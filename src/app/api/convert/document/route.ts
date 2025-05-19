@@ -7,18 +7,7 @@ import mammoth from 'mammoth';
 import TurndownService from 'turndown';
 import PDFDocument from 'pdfkit';
 import { createUnsupportedFormatResponse } from './middleware';
-
-// Map target formats to format strings
-const formatMap: Record<string, string> = {
-  'pdf': 'pdf',
-  'docx': 'docx',
-  'doc': 'doc',
-  'txt': 'txt',
-  'html': 'html',
-  'odt': 'odt',
-  'rtf': 'rtf',
-  'md': 'md'
-};
+import fs from 'fs';
 
 // Define supported conversions
 const supportedConversions = new Set([
@@ -52,9 +41,9 @@ export async function POST(req: NextRequest) {
     const fileNameWithoutExt = path.basename(fileName, path.extname(fileName));
     
     // Check if this conversion is supported
-    const conversionKey = `${fileExt}:${targetFormat}`;
-    if (!supportedConversions.has(conversionKey)) {
-      return createUnsupportedFormatResponse(conversionKey);
+    const conversionPair = `${fileExt}:${targetFormat}`;
+    if (!supportedConversions.has(conversionPair)) {
+      return createUnsupportedFormatResponse(conversionPair);
     }
     
     // Create file paths
@@ -111,9 +100,8 @@ async function convertDocument(
       await convertHtmlToMarkdown(inputPath, outputPath);
     } else if ((sourceFormat === 'txt' || sourceFormat === 'md' || sourceFormat === 'html') && targetFormat === 'pdf') {
       // TXT/MD/HTML -> PDF using PDFKit
-      await convertToPdf(inputPath, outputPath, sourceFormat);
+      await convertToPdf(inputPath, outputPath);
     } else {
-      const conversionKey = `${sourceFormat}:${targetFormat}`;
       throw new Error(`Conversion from ${sourceFormat} to ${targetFormat} is not supported without system dependencies`);
     }
   } catch (error) {
@@ -149,14 +137,14 @@ async function convertHtmlToMarkdown(inputPath: string, outputPath: string): Pro
   await writeFile(outputPath, markdown);
 }
 
-async function convertToPdf(inputPath: string, outputPath: string, sourceFormat: string): Promise<void> {
+async function convertToPdf(inputPath: string, outputPath: string): Promise<void> {
   const content = await readFile(inputPath, 'utf8');
   
   // Create a PDF document
   const doc = new PDFDocument();
   
   // Create a write stream to the output path
-  const writeStream = require('fs').createWriteStream(outputPath);
+  const writeStream = fs.createWriteStream(outputPath);
   doc.pipe(writeStream);
   
   // Add the content to the PDF

@@ -26,7 +26,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response: any = {
+    interface JobResponse {
+      id: string;
+      status: string;
+      originalName: string;
+      inputFormat: string;
+      outputFormat: string;
+      createdAt: Date;
+      updatedAt: Date;
+      result?: unknown;
+      error?: string;
+    }
+
+    const response: JobResponse = {
       id: job.id,
       status: job.status,
       originalName: job.originalName,

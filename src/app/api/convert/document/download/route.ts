@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     
     // Set appropriate content type based on file extension
     const fileExt = path.extname(name).slice(1).toLowerCase();
-    let contentType = contentTypeMap[fileExt] || 'application/octet-stream'; // Default
+    const contentType = contentTypeMap[fileExt] || 'application/octet-stream'; // Default
     
     // Return file with appropriate headers
     return new NextResponse(fileBuffer, {

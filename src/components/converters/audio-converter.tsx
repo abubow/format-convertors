@@ -32,7 +32,6 @@ export function AudioConverter() {
     resetConverter,
     formatFileSize,
     formatDuration,
-    getFilenameWithoutExtension,
     setError,
   } = useMediaConverter({
     mediaType: 'audio',

@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dropzone } from '@/components/ui/dropzone';
 import { fileTypes } from '@/lib/utils';
-import { Download, RefreshCw, Zap, Image, Check, AlertTriangle, Archive } from 'lucide-react';
+import { Download, RefreshCw, Zap, Image as ImageIcon, Check, AlertTriangle, Archive } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import Image from 'next/image';
 
 interface ConversionResult {
   url: string;
@@ -176,7 +177,7 @@ export function ImageConverter() {
       const zip = new JSZip();
       
       // Create an array of promises for fetching files
-      const downloadPromises = convertedUrls.map(async (item, index) => {
+      const downloadPromises = convertedUrls.map(async (item) => {
         const response = await fetch(item.url);
         const blob = await response.blob();
         const filename = `${getFilenameWithoutExtension(item.originalName)}.${outputFormat}`;
@@ -212,7 +213,7 @@ export function ImageConverter() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="neomorphic-icon">
-                    <Image className="h-3 w-3 text-primary" />
+                    <ImageIcon className="h-3 w-3 text-primary"/>
                   </div>
                   <h4 className="font-medium">Select output format</h4>
                 </div>
@@ -302,12 +303,15 @@ export function ImageConverter() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {convertedUrls.map((item, index) => (
                     <div key={index} className="group relative bento-card p-4 overflow-hidden aspect-square">
-                      <img
+                      <Image
                         src={item.url}
-                        alt={`Converted ${item.originalName}`}
-                        className="object-cover absolute inset-0 w-[25vh] h-[25vh] p-2"
+                        alt={`Converted ${getFilenameWithoutExtension(item.originalName)}.${outputFormat}`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 25vh"
+                        priority
+                        className="object-cover p-2"
                       />
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent py-2 px-3">
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent py-2 px-3 z-10">
                         <p className="text-white text-xs truncate">
                           {getFilenameWithoutExtension(item.originalName)}.{outputFormat}
                         </p>

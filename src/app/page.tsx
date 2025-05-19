@@ -4,38 +4,10 @@ import { ImageConverter } from '@/components/converters/image-converter';
 import { VideoConverter } from '@/components/converters/video-converter';
 import { AudioConverter } from '@/components/converters/audio-converter';
 import { DocumentConverter } from '@/components/converters/document-converter';
-import { FileImage, FileVideo, FileAudio, FileText, Zap, Sparkles, LayoutGrid, ArrowRight, Workflow, ChevronRight, Settings } from 'lucide-react';
+import { FileImage, FileVideo, FileAudio, FileText, Sparkles, LayoutGrid, ArrowRight, Workflow, ChevronRight, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-
-function BentoCard({ 
-  className, 
-  children, 
-  colSpan = 3, 
-  rowSpan = 1,
-  hoverEffect = true
-}: { 
-  className?: string; 
-  children: React.ReactNode; 
-  colSpan?: number; 
-  rowSpan?: number;
-  hoverEffect?: boolean;
-}) {
-  return (
-    <div 
-      className={`
-        bento-card 
-        ${hoverEffect ? 'hover:translate-y-[-3px] hover:shadow-xl' : ''}
-        col-span-${colSpan} 
-        row-span-${rowSpan}
-        ${className || ''}
-      `}
-    >
-      {children}
-    </div>
-  );
-}
 
 export default function Home() {
   const [activeConverter, setActiveConverter] = useState<string>('image');

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface ServerFormats {
   video: string[];
@@ -27,32 +27,14 @@ export function useMediaConverter({ mediaType, getAvailableFormats }: UseMediaCo
   const [serverFormats, setServerFormats] = useState<ServerFormats | null>(null);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    fetch('/api/convert/formats')
-      .then(response => response.json())
-      .then(data => {
-        setServerFormats(data);
-      })
-      .catch(err => {
-        console.error('Error fetching formats:', err);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (jobId && converting) {
-      const interval = setInterval(checkStatus, 2000);
-      setPollingInterval(interval);
-      return () => clearInterval(interval);
+  const clearPollingInterval = useCallback(() => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
     }
-    
-    return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-    };
-  }, [jobId, converting]);
+  }, [pollingInterval]);
 
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     if (!jobId) return;
     
     try {
@@ -83,14 +65,33 @@ export function useMediaConverter({ mediaType, getAvailableFormats }: UseMediaCo
     } catch (err) {
       console.error('Error checking status:', err);
     }
-  };
+  }, [jobId, mediaType, clearPollingInterval, setError, setConverting, setConvertedUrls]);
 
-  const clearPollingInterval = () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      setPollingInterval(null);
+  useEffect(() => {
+    fetch('/api/convert/formats')
+      .then(response => response.json())
+      .then(data => {
+        setServerFormats(data);
+      })
+      .catch(err => {
+        console.error('Error fetching formats:', err);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (jobId && converting) {
+      const interval = setInterval(checkStatus, 2000);
+      setPollingInterval(interval);
+      return () => clearInterval(interval);
     }
-  };
+    
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId, converting]);
 
   const handleFileSelect = (selectedFiles: File[]) => {
     setFiles(selectedFiles);

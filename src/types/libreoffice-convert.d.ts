@@ -1,12 +1,18 @@
 declare module 'libreoffice-convert' {
+  interface ConvertOptions {
+    [key: string]: unknown;
+  }
+
   export function convert(
     buffer: Buffer,
     outputFormat: string,
-    options: any,
+    options: ConvertOptions,
     callback: (err: Error | null, resultBuffer: Buffer) => void
   ): void;
 
-  export default {
+  const libreofficeFunctions = {
     convert: convert
   };
+  
+  export default libreofficeFunctions;
 } 

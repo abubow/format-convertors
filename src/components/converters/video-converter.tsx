@@ -37,7 +37,6 @@ export function VideoConverter() {
     resetConverter,
     formatFileSize,
     formatDuration,
-    getFilenameWithoutExtension,
     setError,
   } = useMediaConverter({
     mediaType: 'video',
