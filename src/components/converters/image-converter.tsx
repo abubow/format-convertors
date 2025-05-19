@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dropzone } from '@/components/ui/dropzone';
 import { fileTypes } from '@/lib/utils';
-import { Download, RefreshCw, Zap, Image, Check, AlertTriangle } from 'lucide-react';
+import { Download, RefreshCw, Zap, Image, Check, AlertTriangle, Archive } from 'lucide-react';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 interface ConversionResult {
   url: string;
@@ -166,7 +168,33 @@ export function ImageConverter() {
       setConverting(false);
     }
   };
-  
+
+  const handleDownloadAll = async () => {
+    if (convertedUrls.length === 0) return;
+    
+    try {
+      const zip = new JSZip();
+      
+      // Create an array of promises for fetching files
+      const downloadPromises = convertedUrls.map(async (item, index) => {
+        const response = await fetch(item.url);
+        const blob = await response.blob();
+        const filename = `${getFilenameWithoutExtension(item.originalName)}.${outputFormat}`;
+        zip.file(filename, blob);
+      });
+      
+      // Wait for all downloads to complete
+      await Promise.all(downloadPromises);
+      
+      // Generate and save the zip file
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      saveAs(zipBlob, `converted_images_${new Date().getTime()}.zip`);
+    } catch (error) {
+      console.error('Error creating zip file:', error);
+      setError('Failed to create zip file for download');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {files.length === 0 ? (
@@ -175,7 +203,7 @@ export function ImageConverter() {
           accept={{
             'image/*': fileTypes.image.formats.map(format => `.${format}`)
           }}
-          className="h-[300px]"
+          className="h-[35vh]"
         />
       ) : (
         <div className="space-y-6">
@@ -184,9 +212,9 @@ export function ImageConverter() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="neomorphic-icon">
-                    <Image className="h-5 w-5 text-primary" />
+                    <Image className="h-3 w-3 text-primary" />
                   </div>
-                  <h3 className="font-medium">Select output format</h3>
+                  <h4 className="font-medium">Select output format</h4>
                 </div>
                 <Button 
                   variant="ghost" 
@@ -250,34 +278,44 @@ export function ImageConverter() {
                   <div className="h-2 w-2 rounded-full bg-green-500"></div>
                   <h3 className="font-medium text-green-600">Conversion complete</h3>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setFiles([])}
-                >
-                  Convert another
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setFiles([])}
+                  >
+                    Convert another
+                  </Button>
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    onClick={handleDownloadAll}
+                  >
+                    <Archive className="mr-2 h-3.5 w-3.5" />
+                    Download All
+                  </Button>
+                </div>
               </div>
               
               {/* Scrollable container to prevent overflow */}
-              <div className="max-h-[320px] overflow-y-auto pr-1">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="max-h-[30vh] overflow-y-auto pr-1">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {convertedUrls.map((item, index) => (
                     <div key={index} className="group relative bento-card p-4 overflow-hidden aspect-square">
                       <img
                         src={item.url}
                         alt={`Converted ${item.originalName}`}
-                        className="object-cover absolute inset-0 w-full h-full p-2"
+                        className="object-cover absolute inset-0 w-[25vh] h-[25vh] p-2"
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent py-2 px-3">
                         <p className="text-white text-xs truncate">
-                          {item.originalName}.{outputFormat}
+                          {getFilenameWithoutExtension(item.originalName)}.{outputFormat}
                         </p>
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end p-4">
                         <a
                           href={item.url}
-                          download={`${item.originalName}.${outputFormat}`}
+                          download={`${getFilenameWithoutExtension(item.originalName)}.${outputFormat}`}
                           className="w-full"
                         >
                           <Button size="sm" className="w-full">

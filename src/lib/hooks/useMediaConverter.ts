@@ -189,5 +189,7 @@ export function useMediaConverter({ mediaType, getAvailableFormats }: UseMediaCo
     resetConverter: () => setFiles([]),
     formatFileSize,
     formatDuration,
+    getFilenameWithoutExtension,
+    setError,
   };
 } 

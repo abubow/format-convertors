@@ -1,5 +1,5 @@
-./src/public/uploads
-./src/public/tmp
+./public/uploads
+./public/tmp
 
 # dependencies
 /node_modules

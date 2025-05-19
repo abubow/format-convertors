@@ -3,8 +3,10 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Dropzone } from '@/components/ui/dropzone';
 import { fileTypes } from '@/lib/utils';
-import { Download, RefreshCw, Zap, Film, Check, Clock, AlertCircle } from 'lucide-react';
+import { Download, RefreshCw, Zap, Film, Check, Clock, AlertCircle, Archive } from 'lucide-react';
 import { useMediaConverter, ServerFormats } from '@/lib/hooks/useMediaConverter';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 export function VideoConverter() {
   const getVideoAvailableFormats = (formats: ServerFormats | null, inputFormat: string): string[] => {
@@ -35,10 +37,38 @@ export function VideoConverter() {
     resetConverter,
     formatFileSize,
     formatDuration,
+    getFilenameWithoutExtension,
+    setError,
   } = useMediaConverter({
     mediaType: 'video',
     getAvailableFormats: getVideoAvailableFormats
   });
+  
+  const handleDownloadAll = async () => {
+    if (convertedUrls.length === 0) return;
+    
+    try {
+      const zip = new JSZip();
+      
+      // Create an array of promises for fetching files
+      const downloadPromises = convertedUrls.map(async (item) => {
+        const response = await fetch(item.url);
+        const blob = await response.blob();
+        // Use the processed filename from the server, which should already have the correct extension
+        zip.file(item.filename, blob);
+      });
+      
+      // Wait for all downloads to complete
+      await Promise.all(downloadPromises);
+      
+      // Generate and save the zip file
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      saveAs(zipBlob, `converted_videos_${new Date().getTime()}.zip`);
+    } catch (error) {
+      console.error('Error creating zip file:', error);
+      setError('Failed to create zip file for download');
+    }
+  };
   
   return (
     <div className="space-y-6">
@@ -48,7 +78,7 @@ export function VideoConverter() {
           accept={{
             'video/*': fileTypes.video.formats.map(format => `.${format}`)
           }}
-          className="h-[300px]"
+          className="h-[35vh]"
         />
       ) : (
         <div className="space-y-6">
@@ -130,45 +160,56 @@ export function VideoConverter() {
                   <div className="h-2 w-2 rounded-full bg-green-500"></div>
                   <h3 className="font-medium text-green-600">Conversion complete</h3>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={resetConverter}
-                >
-                  Convert another
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={resetConverter}
+                  >
+                    Convert another
+                  </Button>
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    onClick={handleDownloadAll}
+                  >
+                    <Archive className="mr-2 h-3.5 w-3.5" />
+                    Download All
+                  </Button>
+                </div>
               </div>
               
-              <div className="max-h-[320px] overflow-y-auto pr-1">
-                <div className="space-y-3">
+              <div className="max-h-[30vh] overflow-y-auto pr-1">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {convertedUrls.map((item, index) => (
-                    <div key={index} className="bento-card p-3">
-                      <div className="flex items-center">
-                        <div className="neomorphic-icon mr-3">
-                          <Film className="h-5 w-5 text-primary" />
+                    <div key={index} className="group relative bento-card p-4 overflow-hidden aspect-square">
+                      <div className="absolute inset-0 flex items-center justify-center p-2">
+                        <Film className="h-16 w-16 text-primary/20" />
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent py-2 px-3">
+                        <p className="text-white text-xs truncate">
+                          {item.filename}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-white/70">
+                          <span>{outputFormat.toUpperCase()}</span>
+                          {item.size && <span>• {formatFileSize(item.size)}</span>}
+                          {item.duration && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {formatDuration(item.duration)}
+                            </span>
+                          )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">
-                            {item.filename}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-foreground/70">
-                            <span>{outputFormat.toUpperCase()}</span>
-                            {item.size && <span>• {formatFileSize(item.size)}</span>}
-                            {item.duration && (
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {formatDuration(item.duration)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end p-4">
                         <a
                           href={item.url}
                           download={item.filename}
-                          className="ml-2"
+                          className="w-full"
                         >
-                          <Button size="sm" variant="secondary">
-                            <Download className="h-4 w-4" />
+                          <Button size="sm" className="w-full">
+                            <Download className="mr-2 h-3.5 w-3.5" />
+                            Download
                           </Button>
                         </a>
                       </div>

@@ -52,9 +52,9 @@ export default function Home() {
 
   return (
     <div className="w-full h-full flex items-center justify-center">
-      <div className="grid grid-cols-4 auto-rows-min gap-6 w-full max-w-[1100px] mx-auto p-6">
+      <div className="grid grid-cols-4 grid-rows-[auto_1fr_1fr_1fr_1fr_auto] gap-6 w-full max-w-[1100px] mx-auto p-6 max-h-[99vh]">
         {/* Logo - spans 1 column */}
-        <div className="bento-card flex items-center gap-3 col-span-1 row-span-1" style={{ gridColumn: "1", gridRow: "1" }}>
+        <div className="bento-card flex items-center gap-3 col-span-1 row-span-1 h-full" style={{ gridColumn: "1", gridRow: "1" }}>
           <div className="neomorphic-icon bg-gradient-to-br from-primary/40 to-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.7)] ring-1 ring-primary/40">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -75,14 +75,14 @@ export default function Home() {
         </div>
         
         {/* Tag line - spans 2 columns */}
-        <div className="bento-card col-span-2 row-span-1 flex items-center" style={{ gridColumn: "2 / span 2", gridRow: "1" }}>
+        <div className="bento-card col-span-2 row-span-1 flex items-center h-full" style={{ gridColumn: "2 / span 2", gridRow: "1" }}>
           <p className="text-foreground/70">Transform your files with our modern, intuitive UI</p>
         </div>
         
         {/* Empty space for asymmetry */}
 
-        {/* Floating converter type buttons - spans 1 column, 2 rows */}
-        <div className="bento-card col-span-1 row-span-2 flex flex-col gap-3" style={{ gridColumn: "1", gridRow: "2 / span 2" }}>
+        {/* Floating converter type buttons - spans 1 column, 4 rows */}
+        <div className="bento-card col-span-1 row-span-4 flex flex-col gap-3 h-full" style={{ gridColumn: "1", gridRow: "2 / span 4" }}>
           <div className="flex items-center gap-2 mb-2">
             <div className="neomorphic-inset bg-primary/10">
               <Settings className="h-4 w-4 text-primary" />
@@ -132,7 +132,7 @@ export default function Home() {
         </div>
         
         {/* Main converter area - spans 3 columns, 4 rows */}
-        <div className="bento-card col-span-3 row-span-4 flex flex-col" style={{ gridColumn: "2 / span 3", gridRow: "2 / span 4" }}>
+        <div className="bento-card col-span-3 row-span-4 flex flex-col h-full" style={{ gridColumn: "2 / span 3", gridRow: "2 / span 4" }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="neomorphic-icon">
@@ -154,17 +154,17 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Feature highlight - spans 1 column, 2 rows, intentionally offset */}
-        <div className="bento-card col-span-1 row-span-2" style={{ gridColumn: "1", gridRow: "4 / span 2" }}>
+        {/* Feature highlight - spans 1 column, 1 row, now in last row */}
+        <div className="bento-card col-span-1 row-span-1 flex flex-col h-full" style={{ gridColumn: "1", gridRow: "6" }}>
           <div className="neomorphic-icon mb-3 bg-primary/10">
             <Sparkles className="h-5 w-5 text-primary" />
           </div>
           <h3 className="text-sm font-medium mb-2">High Quality</h3>
           <p className="text-xs text-foreground/70">Preserve the quality of your files during conversion</p>
-      </div>
+        </div>
       
         {/* Info card - spans 2 columns, 1 row */}
-        <div className="bento-card col-span-2 row-span-1 flex items-center justify-between" style={{ gridColumn: "3 / span 2", gridRow: "6" }}>
+        <div className="bento-card col-span-2 row-span-1 flex items-center justify-between h-full" style={{ gridColumn: "3 / span 2", gridRow: "6" }}>
           <div className="flex items-center gap-3">
             <div className="neomorphic-icon">
               <LayoutGrid className="h-4 w-4 text-primary" />
@@ -177,8 +177,8 @@ export default function Home() {
           </Button>
         </div>
         
-        {/* Batch conversion promo - spans 2 columns */}
-        <div className="bento-card col-span-2 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" style={{ gridColumn: "1 / span 2", gridRow: "6" }}>
+        {/* Batch conversion promo - spans 1 column */}
+        <div className="bento-card col-span-1 flex flex-col h-full bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" style={{ gridColumn: "2", gridRow: "6" }}>
           <div className="flex items-center gap-2 mb-2">
             <div className="neomorphic-icon bg-primary/10">
               <Workflow className="h-4 w-4 text-primary" />

@@ -170,114 +170,16 @@ export function DocumentConverter() {
   };
 
   return (
-    <Card className="w-full">
-      <div className="space-y-6">
+    <Card className="w-full h-[35vh] flex items-center justify-center">
+      <div className="p-6">
         {/* Coming Soon Banner */}
         <div className="bg-amber-100 border border-amber-300 rounded-md p-4 flex items-center gap-3">
-          <Clock className="h-6 w-6 text-amber-600" />
+          <Clock className="h-6 w-6 flex-shrink-0 text-amber-600" />
           <div>
             <h3 className="text-amber-800 font-medium">Document Conversion Coming Soon</h3>
             <p className="text-amber-700 text-sm">We're working on implementing document conversion functionality. Please check back later!</p>
           </div>
         </div>
-
-        <Dropzone
-          onFileSelect={handleFileSelect}
-          accept={{
-            'document/*': fileTypes.document.formats.map(format => `.${format}`)
-          }}
-        />
-
-        {files.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-3">
-              <p className="text-sm font-medium text-amber-800 w-full mb-1">Convert to:</p>
-              {getAvailableFormats().map((format) => (
-                <Button
-                  key={format}
-                  size="sm"
-                  variant={outputFormat === format ? 'primary' : 'secondary'}
-                  onClick={() => setOutputFormat(format)}
-                  className="capitalize"
-                >
-                  {format}
-                </Button>
-              ))}
-            </div>
-
-            <Button
-              onClick={handleConvert}
-              disabled={true}
-              className="w-full"
-              title="Document conversion coming soon"
-            >
-              <Zap className="mr-2 h-4 w-4" />
-              Convert
-            </Button>
-
-            {error && (
-              <div className="p-3 bg-red-50 text-red-700 rounded-md flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
-                <p className="text-sm">{error}</p>
-              </div>
-            )}
-
-            {conversionJobs.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-amber-800">Converted files:</p>
-                <div className="grid grid-cols-1 gap-3">
-                  {conversionJobs.map((job, index) => {
-                    const originalExtension = getFileExtension(job.originalName);
-
-                    return (
-                      <div key={index} className="relative group bg-white/30 rounded-lg p-4 shadow-[4px_4px_8px_rgba(0,0,0,0.05),-4px_-4px_8px_rgba(255,255,255,0.9)]">
-                        <div className="flex items-center">
-                          <div className="mr-4">
-                            {getDocumentIcon(originalExtension)}
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-amber-800 truncate">
-                              {job.originalName}
-                            </p>
-                            <div className="flex items-center mt-1">
-                              <span className="text-xs text-amber-600 bg-amber-100/50 px-2 py-0.5 rounded-full shadow-[inset_1px_1px_2px_rgba(0,0,0,0.05)]">
-                                {originalExtension} → {job.targetFormat}
-                              </span>
-                              <span className="ml-2 text-xs">
-                                {job.status === 'pending' && 'Waiting...'}
-                                {job.status === 'processing' && 'Converting...'}
-                                {job.status === 'error' && 'Failed'}
-                                {job.status === 'complete' && 'Complete'}
-                              </span>
-                            </div>
-                          </div>
-                          {job.status === 'complete' && job.downloadUrl && (
-                            <a
-                              href={job.downloadUrl}
-                              className="p-2 rounded-full bg-amber-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] hover:bg-amber-200 transition-colors"
-                            >
-                              <Download className="h-4 w-4 text-amber-800" />
-                            </a>
-                          )}
-                          {job.status === 'processing' && (
-                            <div className="p-2 rounded-full">
-                              <RefreshCw className="h-4 w-4 text-amber-600 animate-spin" />
-                            </div>
-                          )}
-                          {job.status === 'error' && (
-                            <div className="p-2 rounded-full">
-                              <AlertCircle className="h-4 w-4 text-red-600" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </Card>
   );
