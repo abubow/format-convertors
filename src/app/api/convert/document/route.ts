@@ -2,14 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, readFile } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import { UPLOAD_DIR, OUTPUT_DIR, ensureDirectoriesExist } from './constants';
+import { checkDependencies, createDependencyErrorResponse } from './middleware';
 
-// Remove LibreOffice and Pandoc dependencies
-// const libre = require('libreoffice-convert');
-// const libreConvert = promisify(libre.convert);
-// const execPromise = promisify(exec);
+// Import libreoffice-convert with require to avoid TypeScript issues
+const libre = require('libreoffice-convert');
 
-// Map target formats to API format strings
+const libreConvert = promisify(libre.convert);
+const execPromise = promisify(exec);
+
+// Map target formats to LibreOffice format strings
 const formatMap: Record<string, string> = {
   'pdf': 'pdf',
   'docx': 'docx',
@@ -25,6 +29,12 @@ export async function POST(req: NextRequest) {
   try {
     // Ensure directories exist
     await ensureDirectoriesExist();
+
+    // Check for dependencies
+    const { isReady, missingDependencies } = await checkDependencies();
+    if (!isReady) {
+      return createDependencyErrorResponse(missingDependencies);
+    }
 
     const formData = await req.formData();
     const file = formData.get('file') as File;
@@ -53,9 +63,9 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(inputPath, buffer);
     
+    // Start conversion process
     try {
-      // Use cloud conversion API instead of local conversion
-      await convertDocumentWithCloudService(inputPath, outputPath, fileExt, targetFormat);
+      await convertDocument(inputPath, outputPath, fileExt, targetFormat);
       
       // Return response with conversion ID
       return NextResponse.json({
@@ -83,62 +93,60 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function convertDocumentWithCloudService(
+async function convertDocument(
   inputPath: string,
   outputPath: string,
   sourceFormat: string,
   targetFormat: string
 ): Promise<void> {
-  // Read the input file
-  const inputBuffer = await readFile(inputPath);
-  
+  // Use LibreOffice for document conversion
   try {
-    // Example using CloudConvert API - you'll need to install their SDK and set up an account
-    // Replace this with your chosen cloud conversion service
+    if (targetFormat === 'md' && sourceFormat !== 'html' && sourceFormat !== 'txt') {
+      // For markdown conversion from non-text formats, convert to HTML first, then to Markdown
+      const tempHtmlPath = outputPath.replace(/\.[^/.]+$/, '.html');
+      await convertWithLibreOffice(inputPath, tempHtmlPath, 'html');
+      await convertWithPandoc(tempHtmlPath, outputPath);
+      return;
+    }
     
-    // For implementation purposes, this is a placeholder
-    // In a real implementation you would:
-    // 1. Upload the file to the cloud service
-    // 2. Initiate the conversion
-    // 3. Download the result
-    // 4. Write it to the output path
-    
-    // Simulation for example purposes only - REPLACE THIS WITH ACTUAL IMPLEMENTATION
-    const response = await fetch('https://api.cloudconvert.com/v2/convert', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.CLOUD_CONVERT_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        tasks: {
-          'import-my-file': {
-            operation: 'import/upload'
-          },
-          'convert-my-file': {
-            operation: 'convert',
-            input: 'import-my-file',
-            output_format: targetFormat,
-            engine: 'libreoffice'
-          },
-          'export-my-file': {
-            operation: 'export/url',
-            input: 'convert-my-file'
-          }
-        }
-      })
-    });
-    
-    const result = await response.json();
-    
-    // Download the converted file
-    const downloadResponse = await fetch(result.data.tasks.find((t: any) => t.name === 'export-my-file').result.files[0].url);
-    const convertedBuffer = Buffer.from(await downloadResponse.arrayBuffer());
-    
-    // Write the converted file
-    await writeFile(outputPath, convertedBuffer);
+    if ((sourceFormat === 'txt' || sourceFormat === 'md' || sourceFormat === 'html') &&
+        (targetFormat === 'txt' || targetFormat === 'md' || targetFormat === 'html' || targetFormat === 'pdf')) {
+      // For text-based formats, use pandoc
+      await convertWithPandoc(inputPath, outputPath);
+    } else {
+      // For other formats, use LibreOffice
+      await convertWithLibreOffice(inputPath, outputPath, targetFormat);
+    }
   } catch (error) {
-    console.error('Cloud conversion error:', error);
-    throw new Error(`Document conversion failed: ${error}`);
+    console.error('Document conversion error:', error);
+    throw error;
+  }
+}
+
+async function convertWithLibreOffice(inputPath: string, outputPath: string, format: string): Promise<void> {
+  const inputBuffer = await readFile(inputPath);
+  const outputFormat = formatMap[format];
+  
+  if (!outputFormat) {
+    throw new Error(`Unsupported output format: ${format}`);
+  }
+  
+  // Convert using libreoffice-convert
+  try {
+    const outputBuffer = await libreConvert(inputBuffer, outputFormat, undefined);
+    await writeFile(outputPath, outputBuffer);
+  } catch (error: any) {
+    console.error('LibreOffice conversion error:', error);
+    // Fallback to command-line conversion if the library fails
+    await execPromise(`soffice --headless --convert-to ${outputFormat} --outdir "${path.dirname(outputPath)}" "${inputPath}"`);
+  }
+}
+
+async function convertWithPandoc(inputPath: string, outputPath: string): Promise<void> {
+  try {
+    await execPromise(`pandoc "${inputPath}" -o "${outputPath}"`);
+  } catch (error: any) {
+    console.error('Pandoc conversion error:', error);
+    throw new Error(`Pandoc conversion failed: ${error.message}`);
   }
 } 
