@@ -110,6 +110,13 @@ The application is built using a modern tech stack:
 - **Utilities**:
   - UUID: For generating unique conversion IDs
 
+## Documentation
+
+For detailed technical documentation and developer guidelines, please refer to:
+
+- [Technical Documentation](./docs/TECHNICAL.md) - Detailed architecture and implementation details
+- [Documentation Index](./docs/README.md) - All available documentation
+
 ## About HestiaByte
 
 [HestiaByte](https://hestiabyte.com) specializes in building modern web applications with a focus on clean design, performance, and usability. Our expertise includes:
