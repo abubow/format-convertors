@@ -6,11 +6,6 @@
       "use": "@vercel/next"
     }
   ],
-  "functions": {
-    "src/app/api/**/*": {
-      "memory": 1024
-    }
-  },
   "routes": [
     { "src": "/(.*)", "dest": "/" }
   ],
