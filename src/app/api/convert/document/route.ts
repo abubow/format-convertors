@@ -2,18 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, readFile } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import { UPLOAD_DIR, OUTPUT_DIR, ensureDirectoriesExist } from './constants';
-import { checkDependencies, createDependencyErrorResponse } from './middleware';
+import mammoth from 'mammoth';
+import TurndownService from 'turndown';
+import PDFDocument from 'pdfkit';
+import { createUnsupportedFormatResponse } from './middleware';
 
-// Import libreoffice-convert with require to avoid TypeScript issues
-const libre = require('libreoffice-convert');
-
-const libreConvert = promisify(libre.convert);
-const execPromise = promisify(exec);
-
-// Map target formats to LibreOffice format strings
+// Map target formats to format strings
 const formatMap: Record<string, string> = {
   'pdf': 'pdf',
   'docx': 'docx',
@@ -25,16 +20,17 @@ const formatMap: Record<string, string> = {
   'md': 'md'
 };
 
+// Define supported conversions
+const supportedConversions = new Set([
+  'docx:html', 'docx:txt', 'docx:md',
+  'html:md', 
+  'txt:pdf', 'md:pdf', 'html:pdf'
+]);
+
 export async function POST(req: NextRequest) {
   try {
     // Ensure directories exist
     await ensureDirectoriesExist();
-
-    // Check for dependencies
-    const { isReady, missingDependencies } = await checkDependencies();
-    if (!isReady) {
-      return createDependencyErrorResponse(missingDependencies);
-    }
 
     const formData = await req.formData();
     const file = formData.get('file') as File;
@@ -54,6 +50,12 @@ export async function POST(req: NextRequest) {
     const fileName = file.name;
     const fileExt = path.extname(fileName).slice(1).toLowerCase();
     const fileNameWithoutExt = path.basename(fileName, path.extname(fileName));
+    
+    // Check if this conversion is supported
+    const conversionKey = `${fileExt}:${targetFormat}`;
+    if (!supportedConversions.has(conversionKey)) {
+      return createUnsupportedFormatResponse(conversionKey);
+    }
     
     // Create file paths
     const inputPath = path.join(UPLOAD_DIR, `${conversionId}-${fileName}`);
@@ -99,23 +101,20 @@ async function convertDocument(
   sourceFormat: string,
   targetFormat: string
 ): Promise<void> {
-  // Use LibreOffice for document conversion
   try {
-    if (targetFormat === 'md' && sourceFormat !== 'html' && sourceFormat !== 'txt') {
-      // For markdown conversion from non-text formats, convert to HTML first, then to Markdown
-      const tempHtmlPath = outputPath.replace(/\.[^/.]+$/, '.html');
-      await convertWithLibreOffice(inputPath, tempHtmlPath, 'html');
-      await convertWithPandoc(tempHtmlPath, outputPath);
-      return;
-    }
-    
-    if ((sourceFormat === 'txt' || sourceFormat === 'md' || sourceFormat === 'html') &&
-        (targetFormat === 'txt' || targetFormat === 'md' || targetFormat === 'html' || targetFormat === 'pdf')) {
-      // For text-based formats, use pandoc
-      await convertWithPandoc(inputPath, outputPath);
+    // Handle various conversion paths based on source and target formats
+    if (sourceFormat === 'docx' && (targetFormat === 'html' || targetFormat === 'txt' || targetFormat === 'md')) {
+      // DOCX -> HTML/TXT/MD using mammoth
+      await convertFromDocx(inputPath, outputPath, targetFormat);
+    } else if (sourceFormat === 'html' && targetFormat === 'md') {
+      // HTML -> MD using turndown
+      await convertHtmlToMarkdown(inputPath, outputPath);
+    } else if ((sourceFormat === 'txt' || sourceFormat === 'md' || sourceFormat === 'html') && targetFormat === 'pdf') {
+      // TXT/MD/HTML -> PDF using PDFKit
+      await convertToPdf(inputPath, outputPath, sourceFormat);
     } else {
-      // For other formats, use LibreOffice
-      await convertWithLibreOffice(inputPath, outputPath, targetFormat);
+      const conversionKey = `${sourceFormat}:${targetFormat}`;
+      throw new Error(`Conversion from ${sourceFormat} to ${targetFormat} is not supported without system dependencies`);
     }
   } catch (error) {
     console.error('Document conversion error:', error);
@@ -123,30 +122,54 @@ async function convertDocument(
   }
 }
 
-async function convertWithLibreOffice(inputPath: string, outputPath: string, format: string): Promise<void> {
-  const inputBuffer = await readFile(inputPath);
-  const outputFormat = formatMap[format];
+async function convertFromDocx(inputPath: string, outputPath: string, targetFormat: string): Promise<void> {
+  const buffer = await readFile(inputPath);
   
-  if (!outputFormat) {
-    throw new Error(`Unsupported output format: ${format}`);
-  }
-  
-  // Convert using libreoffice-convert
-  try {
-    const outputBuffer = await libreConvert(inputBuffer, outputFormat, undefined);
-    await writeFile(outputPath, outputBuffer);
-  } catch (error: any) {
-    console.error('LibreOffice conversion error:', error);
-    // Fallback to command-line conversion if the library fails
-    await execPromise(`soffice --headless --convert-to ${outputFormat} --outdir "${path.dirname(outputPath)}" "${inputPath}"`);
+  if (targetFormat === 'html') {
+    // Convert DOCX to HTML
+    const result = await mammoth.convertToHtml({ buffer });
+    await writeFile(outputPath, result.value);
+  } else if (targetFormat === 'txt') {
+    // Convert DOCX to plain text
+    const result = await mammoth.extractRawText({ buffer });
+    await writeFile(outputPath, result.value);
+  } else if (targetFormat === 'md') {
+    // Convert DOCX to HTML first, then HTML to Markdown
+    const htmlResult = await mammoth.convertToHtml({ buffer });
+    const turndownService = new TurndownService();
+    const markdown = turndownService.turndown(htmlResult.value);
+    await writeFile(outputPath, markdown);
   }
 }
 
-async function convertWithPandoc(inputPath: string, outputPath: string): Promise<void> {
-  try {
-    await execPromise(`pandoc "${inputPath}" -o "${outputPath}"`);
-  } catch (error: any) {
-    console.error('Pandoc conversion error:', error);
-    throw new Error(`Pandoc conversion failed: ${error.message}`);
-  }
+async function convertHtmlToMarkdown(inputPath: string, outputPath: string): Promise<void> {
+  const html = await readFile(inputPath, 'utf8');
+  const turndownService = new TurndownService();
+  const markdown = turndownService.turndown(html);
+  await writeFile(outputPath, markdown);
+}
+
+async function convertToPdf(inputPath: string, outputPath: string, sourceFormat: string): Promise<void> {
+  const content = await readFile(inputPath, 'utf8');
+  
+  // Create a PDF document
+  const doc = new PDFDocument();
+  
+  // Create a write stream to the output path
+  const writeStream = require('fs').createWriteStream(outputPath);
+  doc.pipe(writeStream);
+  
+  // Add the content to the PDF
+  doc.fontSize(12).text(content, {
+    align: 'left'
+  });
+  
+  // Finalize the PDF and end the stream
+  doc.end();
+  
+  // Wait for the stream to finish
+  await new Promise<void>((resolve, reject) => {
+    writeStream.on('finish', resolve);
+    writeStream.on('error', reject);
+  });
 } 

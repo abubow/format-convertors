@@ -68,7 +68,7 @@ export default function Home() {
               className="text-white filter drop-shadow-[0_0_5px_rgba(255,255,255,0.9)] drop-shadow-[0_0_3px_rgba(var(--primary-rgb),1)] animate-pulse-subtle"
               viewBox="0 0 24 24"
             >
-              <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+              <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" className='shadow-xl'></path>
             </svg>
           </div>
           <h1 className="text-lg font-bold">ConvertMaster</h1>

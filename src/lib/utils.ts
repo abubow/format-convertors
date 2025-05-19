@@ -55,16 +55,12 @@ export const fileTypes = {
     }
   },
   document: {
-    formats: ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'html', 'md'],
+    formats: ['pdf', 'docx', 'txt', 'html', 'md'],
     conversions: {
-      'pdf': ['doc', 'docx', 'txt', 'html'],
-      'doc': ['pdf', 'docx', 'txt', 'html'],
-      'docx': ['pdf', 'doc', 'txt', 'html'],
-      'txt': ['pdf', 'html', 'md'],
-      'rtf': ['pdf', 'doc', 'docx', 'txt'],
-      'odt': ['pdf', 'doc', 'docx', 'txt'],
-      'html': ['pdf', 'txt', 'md'],
-      'md': ['html', 'txt', 'pdf']
+      'docx': ['html', 'txt', 'md'],
+      'html': ['md', 'pdf'],
+      'txt': ['pdf'],
+      'md': ['pdf'],
     }
   }
 }; 
